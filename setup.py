@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='Elaborate-Last.fm-Charts',
+    name='elaborate-lastfm-charts',
     description='Amazing Last.fm charts.',
-    version='0.1',
+    version='0.1.0',
     author='Sviatoslav Abakumov',
     author_email='dust.harvesting@gmail.com',
     url='https://github.com/Perlence/elaborate-lastfm-charts',
