@@ -4,7 +4,7 @@ setup(
     name='elaborate-lastfm-charts',
     description='Amazing Last.fm charts.',
     version='0.1.0',
-    author='Sviatoslav Abakumov',
+    author='Sviatoslav Abakumov, Anastasiya Kozayeva',
     author_email='dust.harvesting@gmail.com',
     url='https://github.com/Perlence/elaborate-lastfm-charts',
     platforms=['MacOS X', 'Unix', 'POSIX'],

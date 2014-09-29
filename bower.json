@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "homepage": "https://github.com/Perlence/elaborate-lastfm-charts",
   "authors": [
-    "Sviatoslav Abakumov <dust.harvesting@gmail.com>"
+    "Sviatoslav Abakumov <dust.harvesting@gmail.com>",
+    "Anastasiya Kozayeva <sacret.nk@mail.ru>"
   ],
   "description": "Amazing Last.fm charts.",
   "keywords": [
