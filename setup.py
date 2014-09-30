@@ -21,9 +21,11 @@ setup(
     install_requires=[
         'arrow',
         'Flask',
+        'Flask-Assets',
         'gevent',
         'mongokit',
         'pylast',
+        'pyscss',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
