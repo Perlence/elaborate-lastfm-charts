@@ -22,7 +22,7 @@ def weekly_artist_charts(request):
     from_date = request.get('fromDate')
     to_date = request.get('toDate')
 
-    api = LastFMNetwork(config.API_KEY, config.SECRET_KEY)
+    api = LastFMNetwork(config.API_KEY, config.API_SECRET)
     user = api.get_user(username)
 
     if from_date is None:

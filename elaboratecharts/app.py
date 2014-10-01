@@ -6,11 +6,12 @@ from os import path
 
 from flask import Flask, render_template
 
+from . import config
 from .views import app as elaboratecharts
 from .socketio import socketio
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
+app.config['SECRET_KEY'] = config.SECRET_KEY
 
 app.register_blueprint(elaboratecharts)
 socketio.init_app(app)
