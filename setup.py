@@ -26,6 +26,7 @@ setup(
         'mongokit',
         'pylast',
         'pyscss',
+        'pyyaml',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

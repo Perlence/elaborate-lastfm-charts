@@ -1,8 +1,27 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<div class="jumbotron">
-  <h1>Hello world</h1>
-  Indeed.
+<div class="row">
+  <div class="col-xs-6 col-xs-offset-3">
+    <div class="panel panel-default" id="header-panel">
+      <div class="panel-body">
+        <div class="input-group">
+          <input id="username" type="text" class="form-control" name="username" placeholder="Enter your username" />
+          <div class="input-group-btn">
+            <button class="btn btn-primary" type="button" id="submit">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<ul id="time-range" class="nav nav-tabs" role="tablist">
+  <li id="last-7-days"><a href="#last-7-days" role="tab" data-toggle="tab">Last 7 days</a></li>
+  <li id="last-month"><a href="#last-month" role="tab" data-toggle="tab">Last month</a></li>
+  <li id="last-3-months"><a href="#last-3-months" role="tab" data-toggle="tab">Last 3 months</a></li>
+  <li id="last-6-months" class="active"><a href="#last-6-months" role="tab" data-toggle="tab">Last 6 months</a></li>
+  <li id="last-12-months"><a href="#last-12-months" role="tab" data-toggle="tab">Last 12 months</a></li>
+  <li id="overall"><a href="#overall" role="tab" data-toggle="tab">Overall</a></li>
+</ul>
 {% endblock %}

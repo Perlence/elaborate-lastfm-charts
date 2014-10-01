@@ -5,7 +5,7 @@ monkey.patch_all(select=False, thread=False)
 
 import arrow
 import yaml
-from flask import Blueprint, Response, request
+from flask import Blueprint, Response, request, render_template
 from pylast import LastFMNetwork
 
 from . import config
@@ -36,7 +36,10 @@ def weekly():
         return yamlify({'error': 'missing username'}, status=400)
 
     api = LastFMNetwork(config.API_KEY, config.SECRET_KEY)
-    user = api.get_user(username)
+    try:
+        user = api.get_user(username)
+    except:
+        return yamlify({'error': 'failed to get user'}, status=503)
 
     if from_date is None:
         from_date = user.get_registered()
@@ -59,3 +62,7 @@ def weekly():
             yield yaml.dump(result, Dumper=yaml.dumper.SafeDumper)
 
     return Response(generate(), mimetype='application/x-yaml')
+
+@app.route('/')
+def index():
+    return render_template('index.html')
