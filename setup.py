@@ -14,19 +14,22 @@ setup(
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'startapp = elaboratecharts.app:start',
-            'debugapp = elaboratecharts.app:debug',
+            'ec-start = elaboratecharts.app:start',
+            'ec-debug = elaboratecharts.app:debug',
+            'ec-watch = elaboratecharts.assets:watch',
+            'ec-build = elaboratecharts.assets:build',
+            'ec-clean = elaboratecharts.assets:clean',
         ],
     },
     install_requires=[
         'arrow',
         'Flask',
-        'Flask-Assets',
         'gevent',
         'mongokit',
         'pylast',
         'pyscss',
         'pyyaml',
+        'webassets',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
