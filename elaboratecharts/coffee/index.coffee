@@ -1,6 +1,9 @@
 $ ->
   socket = io.connect('http://' + document.domain + ':' + location.port)
 
+  socket.on 'week', (week) ->
+    $('#log').append(JSON.stringify(week) + '\n')
+
   $('#submit').click ->
     username = $('#username').val().trim()
     timeRange = $('#time-range li.active').attr('id')

@@ -1,24 +1,19 @@
 from gevent import monkey
-monkey.patch_all()
+monkey.patch_all(select=False, thread=False)
 
 from functools import partial
 from os import path
 
 from flask import Flask, render_template
-from flask.ext.socketio import SocketIO
 
-from . import views
+from .views import app as elaboratecharts
+from .socketio import socketio
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
 
-app.register_blueprint(views.app)
-
-
-@socketio.on('weekly artist charts')
-def handle_message(req):
-    print req
+app.register_blueprint(elaboratecharts)
+socketio.init_app(app)
 
 
 def start(debug=False):
