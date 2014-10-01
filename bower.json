@@ -25,6 +25,7 @@
   "dependencies": {
     "highcharts.com": "~4.0.4",
     "bootstrap-sass": "~3.0.2",
+    "moment": "~2.8.3",
     "socket.io-client": "0.9.16"
   }
 }
