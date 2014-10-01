@@ -24,6 +24,7 @@ setup(
     install_requires=[
         'arrow',
         'Flask',
+        'Flask-SocketIO',
         'gevent',
         'mongokit',
         'pylast',

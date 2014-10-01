@@ -1,7 +1,5 @@
 from gevent import iwait
 from gevent.pool import Pool
-from gevent import monkey
-monkey.patch_all(select=False, thread=False)
 
 import arrow
 import yaml
