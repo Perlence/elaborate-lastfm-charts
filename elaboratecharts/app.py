@@ -2,9 +2,8 @@ from gevent import monkey
 monkey.patch_all(select=False, thread=False)
 
 from functools import partial
-from os import path
 
-from flask import Flask, render_template
+from flask import Flask
 
 from . import config
 from .views import app as elaboratecharts

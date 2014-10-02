@@ -31,13 +31,17 @@ def weekly_artist_charts(request):
     from_date = arrow.get(from_date)
     to_date = arrow.get(to_date)
     span_range = arrow.Arrow.span_range('week', from_date, to_date)
+    emit('weeks', [s.replace(hours=-12).timestamp for s, _ in span_range])
 
     pool = Pool(72)
     greenlets = [pool.spawn(get_weekly_artist_charts, user, s, e)
                  for s, e in span_range]
 
     for greenlet in iwait(greenlets):
-        from_date, week = greenlet.get()
+        try:
+            from_date, week = greenlet.get()
+        except Exception as e:
+            print e
         items = [[topitem.item.network, topitem.weight]
                  for topitem in week]
         emit('week', [from_date, items])

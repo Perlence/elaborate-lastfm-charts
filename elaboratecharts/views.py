@@ -1,7 +1,5 @@
 from flask import Blueprint, render_template
 
-from . import config
-
 app = Blueprint('elaboratecharts', __name__)
 
 

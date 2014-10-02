@@ -29,7 +29,6 @@ setup(
         'mongokit',
         'pylast',
         'pyscss',
-        'pyyaml',
         'webassets',
     ],
     classifiers=[
