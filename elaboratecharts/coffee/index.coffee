@@ -12,6 +12,8 @@ prepareChart = (weeks) ->
     yAxis:
       title:
         text: 'Percent'
+    legend:
+      enabled: false
     plotOptions:
       area:
         stacking: 'percent'
@@ -26,6 +28,7 @@ prepareChart = (weeks) ->
 $ ->
   weeks = []
   artists = []
+  data = {}
 
   socket = io.connect('http://' + document.domain + ':' + location.port)
 
@@ -38,17 +41,22 @@ $ ->
     chart = $('#chart').highcharts()
     for [artist, count] in pairs
       if artist not in artists
+        data[artist] = []
         artists.push(artist)
+        data[artist] = (0 for __ in weeks)
         chart.addSeries
           name: artist
-          data: (0 for __ in weeks)
+          data: data[artist]
         , false
       seriesIndex = artists.indexOf(artist)
-      pointsIndex = weeks.indexOf(timestamp)
-      chart.series[seriesIndex].points[pointsIndex].update(y: count, false)
+      data[artist][weeks.indexOf(timestamp)] = count
+      chart.series[seriesIndex].setData(data[artist], false)
     chart.redraw()
 
   $('#submit').click ->
+    weeks = []
+    artists = []
+    data = {}
     username = $('#username').val().trim()
     timeRange = $('#time-range li.active').attr('id')
     fromDate = switch timeRange
