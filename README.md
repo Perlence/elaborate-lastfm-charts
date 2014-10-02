@@ -46,9 +46,15 @@ To install the application you need Python 2.7 and a stable node.js.
     bower install
     ```
 
-`elaborate-lastfm-charts` creates following scripts:
+-   Create a config from template:
 
--   `ec-start` &ndash; start the server
--   `ec-debug` &ndash; start the server and enable debugging
--   `ec-build` &ndash; build assets
--   `ec-watch` &ndash; watch for changes in asset files
+    ```bash
+    cp elaboratecharts/default.json elaboratecharts/config.json
+    ```
+
+-   Put actual values into the config.
+
+`elaborate-lastfm-charts` creates following entry points:
+
+-   `startapp` &ndash; start the web server.
+-   `debugapp` &ndash; start the server and enable debugging.
