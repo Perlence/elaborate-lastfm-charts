@@ -1,13 +1,19 @@
-prepareChart = (weeks) ->
-  $('#chart').highcharts
+prepareChart = (timestamps) ->
+  $chart = $('#chart')
+  $chart.highcharts
     chart:
       type: 'area'
+      zoomType: 'x'
+      panning: true,
+      panKey: 'shift'
     title:
-      text: ''
+      text: null
     xAxis:
-      categories: weeks.map (ts) -> moment.unix(ts).format('YYYY-MM-DD')
+      categories: timestamps.map (ts) -> moment.unix(ts).format('YYYY-MM-DD')
       tickmarkPlacement: 'on'
       title:
+        enabled: false
+      labels:
         enabled: false
     yAxis:
       title:
@@ -23,48 +29,41 @@ prepareChart = (weeks) ->
           lineWidth: 1
           lineColor: '#ffffff'
     series: []
+  chart = $chart.highcharts()
+
+
+drawChart = (weeklyCharts) ->
+  artists = {}
+  timestamps = []
+  for timestamp, topitems of weeklyCharts
+    timestamps.push(timestamp)
+    for artist, count of topitems
+      artists[artist] ?= {}
+      artists[artist][timestamp] = count
+
+  chart = prepareChart(timestamps)
+  for artist, weeks of artists
+    series =
+      name: artist
+      data: (weeks[timestamp] ? 0 for timestamp in timestamps)
+    chart.addSeries(series, false)
+  chart.redraw()
 
 
 $ ->
-  weeks = []
-  artists = []
-  data = {}
-
-  socket = io.connect('http://' + document.domain + ':' + location.port)
-
-  socket.on 'weeks', (_weeks) ->
-    weeks = _weeks
-    prepareChart(_weeks)
-
-  socket.on 'week', (week) ->
-    [timestamp, pairs] = week
-    chart = $('#chart').highcharts()
-    for [artist, count] in pairs
-      if artist not in artists
-        data[artist] = []
-        artists.push(artist)
-        data[artist] = (0 for __ in weeks)
-        chart.addSeries
-          name: artist
-          data: data[artist]
-        , false
-      seriesIndex = artists.indexOf(artist)
-      data[artist][weeks.indexOf(timestamp)] = count
-      chart.series[seriesIndex].setData(data[artist], false)
-    chart.redraw()
-
   $('#submit').click ->
-    weeks = []
-    artists = []
-    data = {}
     username = $('#username').val().trim()
     timeRange = $('#time-range li.active').attr('id')
-    fromDate = switch timeRange
-      when 'last-7-days'    then moment.utc().subtract(1, 'week')
-      when 'last-month'     then moment.utc().subtract(1, 'month')
-      when 'last-3-months'  then moment.utc().subtract(3, 'months')
-      when 'last-6-months'  then moment.utc().subtract(6, 'months')
-      when 'last-12-months' then moment.utc().subtract(12, 'months')
-      when 'overall'        then null
     toDate = moment.utc()
-    socket.emit('weekly artist charts', {username, fromDate, toDate})
+    fromDate = switch timeRange
+      when 'last-7-days'    then toDate.clone().subtract(1, 'week')
+      when 'last-month'     then toDate.clone().subtract(1, 'month')
+      when 'last-3-months'  then toDate.clone().subtract(3, 'month')
+      when 'last-6-months'  then toDate.clone().subtract(6, 'month')
+      when 'last-12-months' then toDate.clone().subtract(12, 'month')
+      when 'overall'        then null
+
+    $.getJSON(
+      $SCRIPT_ROOT + '/weekly-artist-charts'
+      {username, fromDate: fromDate.unix(), toDate: toDate.unix()}
+      drawChart)

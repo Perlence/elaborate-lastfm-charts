@@ -7,13 +7,11 @@ from flask import Flask
 
 from . import config
 from .views import app as elaboratecharts
-from .socketio import socketio
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = config.SECRET_KEY
 
 app.register_blueprint(elaboratecharts)
-socketio.init_app(app)
 
 
 def start(debug=False):
@@ -24,6 +22,6 @@ def start(debug=False):
     else:
         host = '0.0.0.0'
     app.debug = debug
-    socketio.run(app, host=host, port=5000)
+    app.run(host=host, port=5000)
 
 debug = partial(start, debug=True)

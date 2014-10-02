@@ -18,7 +18,6 @@ js_bundle = Bundle(
     'jquery/dist/jquery.js',
     'bootstrap-sass/dist/js/bootstrap.js',
     'moment/min/moment-with-locales.js',
-    'socket.io-client/dist/socket.io.js',
     'highcharts-release/highcharts.js',
     Bundle(
         'index.coffee',
