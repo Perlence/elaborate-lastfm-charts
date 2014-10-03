@@ -1,7 +1,16 @@
+@import "bootstrap";
+
 .row {
   margin: 0;
 }
 
 #header-panel {
   margin-top: 20px;
+}
+
+.btn-primary {
+    color: $btn-primary-color;
+    &:hover, &:focus {
+        color: $btn-primary-color;
+    }
 }

@@ -29,10 +29,12 @@ js_bundle = Bundle(
         filters=['coffeescript']),
     output='js_all.js')
 css_bundle = Bundle(
-    'bootstrap-sass/lib/bootstrap.scss',
     'all.scss',
     filters=['pyscss'],
     output='css_all.css')
+env.config['pyscss_load_paths'] = [
+    path.join(path.dirname(__file__), 'bower_components/bootstrap-sass/lib/'),
+]
 env.register('js_all', js_bundle)
 env.register('css_all', css_bundle)
 
