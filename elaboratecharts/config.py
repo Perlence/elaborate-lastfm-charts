@@ -8,11 +8,12 @@ def _setup():
 
     with relopen('default.json') as default:
         config = json.load(default)
-        try:
-            with relopen('config.json') as config_fp:
-                config.update(json.load(config_fp))
-        except IOError:
-            warn('user config is missing')
+    try:
+        with relopen('config.json') as config_fp:
+            config.update(json.load(config_fp))
+    except IOError:
+        warn('user config is missing')
+
     return config
 
 globals().update(_setup())

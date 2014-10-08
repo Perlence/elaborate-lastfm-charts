@@ -3,7 +3,6 @@ from collections import OrderedDict
 
 import arrow
 from flask import Blueprint, request, render_template
-from gevent import iwait
 from gevent.pool import Pool
 from pylast import LastFMNetwork
 
@@ -29,6 +28,7 @@ def weekly_artist_charts():
     username = request.args.get('username')
     from_date = request.args.get('fromDate')
     to_date = request.args.get('toDate')
+    cumulative = request.args.get('cumulative', type=bool)
 
     api = LastFMNetwork(config.API_KEY, config.API_SECRET)
     user = api.get_user(username)

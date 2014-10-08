@@ -9,8 +9,16 @@
 }
 
 .btn-primary {
+  color: $btn-primary-color;
+
+  &:hover,
+  &:focus {
     color: $btn-primary-color;
-    &:hover, &:focus {
-        color: $btn-primary-color;
-    }
+  }
+}
+
+.panel-slim {
+  border-radius: 0;
+  border-left: 0;
+  border-right: 0;
 }

@@ -1,29 +1,32 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<div class="row">
-  <div class="col-xs-6 col-xs-offset-3">
-    <div class="panel panel-default" id="header-panel">
-      <div class="panel-body">
-        <div class="input-group">
-          <input id="username" type="text" class="form-control" name="username" placeholder="Enter your username" value="sacret19" />
-          <div class="input-group-btn">
-            <button class="btn btn-primary" type="button" id="submit">Submit</button>
-          </div>
-        </div>
+<div class="panel panel-default panel-slim" id="header-panel">
+  <div class="panel-body">
+    <form class="form-inline text-center" role="form">
+      <div class="form-group">
+        <label class="sr-only" for="username">Username</label>
+        <input id="username" type="text" class="form-control" name="username" placeholder="Enter your username" value="sacret19" />
       </div>
-    </div>
+      <div class="form-group">
+        <select class="form-control" name="time-range" id="time-range">
+          <option value="last-7-days">Last 7 days</option>
+          <option value="last-month">Last month</option>
+          <option value="last-3-months" selected>Last 3 months</option>
+          <option value="last-6-months">Last 6 months</option>
+          <option value="last-12-months">Last 12 months</option>
+          <option value="overall">Overall</option>
+        </select>
+      </div>
+      <div class="checkbox text-left">
+        <label>
+          <input type="checkbox" id="cumulative" checked> Cumulative
+        </label>
+      </div>
+      <button class="btn btn-primary" type="button" id="submit">Submit</button>
+    </form>
   </div>
 </div>
-
-<ul id="time-range" class="nav nav-tabs" role="tablist">
-  <li id="last-7-days"><a href="#last-7-days" role="tab" data-toggle="tab">Last 7 days</a></li>
-  <li id="last-month" class="active"><a href="#last-month" role="tab" data-toggle="tab">Last month</a></li>
-  <li id="last-3-months"><a href="#last-3-months" role="tab" data-toggle="tab">Last 3 months</a></li>
-  <li id="last-6-months"><a href="#last-6-months" role="tab" data-toggle="tab">Last 6 months</a></li>
-  <li id="last-12-months"><a href="#last-12-months" role="tab" data-toggle="tab">Last 12 months</a></li>
-  <li id="overall"><a href="#overall" role="tab" data-toggle="tab">Overall</a></li>
-</ul>
 
 <div id="chart"></div>
 {% endblock %}
