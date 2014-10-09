@@ -64,7 +64,7 @@ $ ->
       when 'last-12-months' then toDate.clone().subtract(12, 'month')
       when 'overall'        then null
 
-    fromDate = fromDate.unix()
+    fromDate = fromDate?.unix()
     toDate = toDate.unix()
 
     $.getJSON(
