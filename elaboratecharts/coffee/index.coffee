@@ -9,7 +9,9 @@ prepareChart = (timestamps) ->
     title:
       text: null
     xAxis:
-      categories: timestamps.map (ts) -> moment.unix(ts).format('YYYY-MM-DD')
+      categories: timestamps.map (ts) ->
+        ts = moment.unix(ts)
+        ts.format('YYYY-MM-DD') + '—' + ts.add(1, 'week').format('YYYY-MM-DD')
       tickmarkPlacement: 'on'
       title:
         enabled: false
@@ -36,6 +38,8 @@ drawChart = (weeklyCharts) ->
   artists = {}
   timestamps = []
   for timestamp, topitems of weeklyCharts
+    if timestamp == 'errors'
+      continue
     timestamps.push(timestamp)
     for artist, count of topitems
       artists[artist] ?= {}
@@ -56,19 +60,8 @@ $ ->
     numberOfArtists = $('#number-of-artists option:selected').val()
     timeframe = $('#timeframe option:selected').val()
     cumulative = $('#cumulative').is(':checked')
-    toDate = moment.utc()
-    fromDate = switch timeframe
-      when 'last-7-days'    then toDate.clone().subtract(1,  'week' )
-      when 'last-month'     then toDate.clone().subtract(1,  'month')
-      when 'last-3-months'  then toDate.clone().subtract(3,  'month')
-      when 'last-6-months'  then toDate.clone().subtract(6,  'month')
-      when 'last-12-months' then toDate.clone().subtract(12, 'month')
-      when 'overall'        then null
-
-    fromDate = fromDate?.unix()
-    toDate = toDate.unix()
 
     $.getJSON(
       $SCRIPT_ROOT + '/weekly-artist-charts'
-      {username, numberOfArtists, fromDate, toDate, cumulative}
+      {username, numberOfArtists, timeframe, cumulative}
       drawChart)

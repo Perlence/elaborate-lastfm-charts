@@ -1,15 +1,14 @@
 from __future__ import division
 
-import json
 from collections import OrderedDict, defaultdict
 from itertools import islice
 
 import arrow
 import mongokit
-from flask import Blueprint, request, render_template, g
+from flask import Blueprint, jsonify, request, render_template, g
 from gevent import spawn
 from gevent.pool import Pool
-from pylast import LastFMNetwork
+from pylast import LastFMNetwork, WSError
 
 from . import config
 from .models import documents
@@ -38,8 +37,7 @@ def index():
 def weekly_artist_charts():
     username = request.args.get('username')
     number_of_artists = request.args.get('numberOfArtists', type=int)
-    from_date = request.args.get('fromDate')
-    to_date = request.args.get('toDate')
+    timeframe = request.args.get('timeframe')
     cumulative = request.args.get('cumulative', type=lambda x: x == 'true')
 
     dbuser = (g.db.User.find_one({'_id': username}) or
@@ -48,24 +46,53 @@ def weekly_artist_charts():
     api = LastFMNetwork(config.API_KEY, config.API_SECRET)
     user = api.get_user(username)
 
-    if from_date is None:
-        from_date = get_registered(dbuser, user)
+    try:
+        registered = get_registered(dbuser, user)
+    except WSError as err:
+        response = jsonify(errors=[err.details])
+        response.status_code = 500
+        return response
 
-    from_date = arrow.get(from_date)
-    to_date = arrow.get(to_date)
+    to_date = arrow.get()
+    if timeframe == 'last-7-days':
+        from_date = to_date.replace(weeks=-1)
+    elif timeframe == 'last-month':
+        from_date = to_date.replace(months=-1)
+    elif timeframe == 'last-3-months':
+        from_date = to_date.replace(months=-3)
+    elif timeframe == 'last-6-months':
+        from_date = to_date.replace(months=-6)
+    elif timeframe == 'last-12-months':
+        from_date = to_date.replace(months=-12)
+    elif timeframe == 'overall':
+        from_date = arrow.get(registered)
+    else:
+        response = jsonify(errors=['Unrecognized timeframe'])
+        response.status_code = 400
+        return response
+
     span_range = arrow.Arrow.span_range('week', from_date, to_date)
+    span_range = [(s.replace(hours=-12),
+                   e.replace(hours=-12, microseconds=+1))
+                  for s, e in span_range]
 
     pool = Pool(72)
-    greenlets = [pool.spawn(get_weekly_artist_charts, dbuser, user, s, e)
+    greenlets = [(s, pool.spawn(get_weekly_artist_charts, dbuser, user, s, e))
                  for s, e in span_range]
     pool.join()
 
     results = OrderedDict()
-    for greenlet in greenlets:
-        from_date, charts = greenlet.get()
-        items = OrderedDict((item['artist'], item['count'])
-                            for item in charts)
-        results[from_date.timestamp] = items
+    errors = []
+    for from_date, greenlet in greenlets:
+        try:
+            charts = greenlet.get()
+        except WSError as err:
+            errors.append('Failed to get charts for %s: %s' %
+                          (from_date.isoformat(), err.details))
+        else:
+            items = OrderedDict((item['artist'], item['count'])
+                                for item in charts)
+            results[from_date.timestamp] = items
 
     if cumulative:
         artists_acc = defaultdict(int)
@@ -86,7 +113,8 @@ def weekly_artist_charts():
 
     # Would be better to save document after response is sent.
     dbuser.save()
-    return json.dumps(results)
+    results['errors'] = errors
+    return jsonify(results)
 
 
 def get_registered(dbuser, user):
@@ -98,9 +126,8 @@ def get_registered(dbuser, user):
 
 
 def get_weekly_artist_charts(dbuser, user, from_date, to_date):
-    is_current_week = arrow.get().floor('week') == from_date
-    from_date = from_date.replace(hours=-12)
-    to_date = to_date.replace(hours=-12, microseconds=+1)
+    week_start = arrow.get().floor('week')
+    is_current_week = week_start.replace(hours=-12) == from_date
 
     weekly_artist_charts = dbuser.setdefault('weekly_artist_charts', [])
 
@@ -108,7 +135,7 @@ def get_weekly_artist_charts(dbuser, user, from_date, to_date):
         # Naive search
         for charts in weekly_artist_charts:
             if charts['from'] == from_date:
-                return from_date, charts['artists']
+                return charts['artists']
         charts = user.get_weekly_artist_charts(from_date.timestamp,
                                                to_date.timestamp)
     else:
@@ -122,4 +149,4 @@ def get_weekly_artist_charts(dbuser, user, from_date, to_date):
             'to': to_date,
             'artists': result,
         })
-    return from_date, result
+    return result
