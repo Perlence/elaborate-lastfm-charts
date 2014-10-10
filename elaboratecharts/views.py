@@ -1,5 +1,8 @@
+from __future__ import division
+
 import json
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
+from itertools import islice
 
 import arrow
 import mongokit
@@ -36,7 +39,7 @@ def weekly_artist_charts():
     username = request.args.get('username')
     from_date = request.args.get('fromDate')
     to_date = request.args.get('toDate')
-    cumulative = request.args.get('cumulative', type=bool)
+    cumulative = request.args.get('cumulative', type=lambda x: x == 'true')
 
     dbuser = (g.db.User.find_one({'_id': username}) or
               g.db.User({'_id': username}))
@@ -62,6 +65,23 @@ def weekly_artist_charts():
         items = OrderedDict((item['artist'], item['count'])
                             for item in charts)
         results[from_date.timestamp] = items
+
+    if cumulative:
+        artists_acc = defaultdict(int)
+        for timestamp, charts in results.iteritems():
+            for artist, count in charts.iteritems():
+                artists_acc[artist] += charts[artist]
+                charts[artist] = artists_acc[artist]
+            for artist, count in artists_acc.iteritems():
+                if artist not in charts:
+                    charts[artist] = count
+
+    # Limit the number of artists
+    for timestamp, charts in results.iteritems():
+        charts = sorted(charts.iteritems(),
+                        key=lambda (__, count): count,
+                        reverse=True)
+        results[timestamp] = OrderedDict(islice(charts, 0, 20))
 
     # Would be better to save document after response is sent.
     dbuser.save()

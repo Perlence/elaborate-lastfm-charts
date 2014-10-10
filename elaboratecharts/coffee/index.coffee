@@ -54,7 +54,7 @@ $ ->
   $('#submit').click ->
     username = $('#username').val().trim()
     timeRange = $('#time-range option:selected').attr('value')
-    cumulative = Number($('#cumulative').is(':checked'))
+    cumulative = $('#cumulative').is(':checked')
     toDate = moment.utc()
     fromDate = switch timeRange
       when 'last-7-days'    then toDate.clone().subtract(1,  'week' )
