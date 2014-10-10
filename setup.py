@@ -25,7 +25,6 @@ setup(
         'gevent',
         'mongokit',
         'pylast',
-        'pyscss',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

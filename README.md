@@ -34,10 +34,11 @@ To install the application you need Python 2.7 and a stable node.js.
     python setup.py develop
     ```
 
--   Install bower and coffee-script:
+-   Install Bower, CoffeeScript and Sass:
 
     ```bash
     npm install -g bower coffee-script
+    gem install sass
     ```
 
 -   Install front-end dependencies through bower:
