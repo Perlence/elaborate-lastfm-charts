@@ -1,3 +1,4 @@
+from gevent.wsgi import WSGIServer
 from gevent import monkey
 monkey.patch_all(select=False, thread=False)
 
@@ -6,6 +7,7 @@ from os import path
 
 from flask import Flask
 from flask.ext.assets import Environment, Bundle
+from werkzeug.serving import run_with_reloader
 
 from . import config
 from .views import app as elaboratecharts
@@ -49,6 +51,9 @@ def start(debug=False):
     else:
         host = '0.0.0.0'
     app.debug = debug
-    app.run(host=host, port=5000)
+    http_server = WSGIServer((host, 5000), app)
+    http_server.serve_forever()
 
-debug = partial(start, debug=True)
+
+def debug():
+    run_with_reloader(partial(start, debug=True))

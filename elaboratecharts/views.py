@@ -111,8 +111,7 @@ def weekly_artist_charts():
                         reverse=True)
         results[timestamp] = OrderedDict(islice(charts, 0, number_of_artists))
 
-    # Would be better to save document after response is sent.
-    dbuser.save()
+    spawn(dbuser.save)
     results['errors'] = errors
     return jsonify(results)
 
