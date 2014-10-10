@@ -4,6 +4,19 @@
   margin: 0;
 }
 
+#header-container {
+  @include make-xs-column(12);
+
+  @include make-sm-column(10);
+  @include make-sm-column-offset(1);
+
+  @include make-md-column(8);
+  @include make-md-column-offset(2);
+
+  @include make-lg-column(6);
+  @include make-lg-column-offset(3);
+}
+
 #header-panel {
   margin-top: 20px;
 }
@@ -15,10 +28,4 @@
   &:focus {
     color: $btn-primary-color;
   }
-}
-
-.panel-slim {
-  border-radius: 0;
-  border-left: 0;
-  border-right: 0;
 }

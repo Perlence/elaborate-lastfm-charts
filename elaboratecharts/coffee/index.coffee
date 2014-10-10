@@ -53,10 +53,11 @@ drawChart = (weeklyCharts) ->
 $ ->
   $('#submit').click ->
     username = $('#username').val().trim()
-    timeRange = $('#time-range option:selected').attr('value')
+    numberOfArtists = $('#number-of-artists option:selected').val()
+    timeframe = $('#timeframe option:selected').val()
     cumulative = $('#cumulative').is(':checked')
     toDate = moment.utc()
-    fromDate = switch timeRange
+    fromDate = switch timeframe
       when 'last-7-days'    then toDate.clone().subtract(1,  'week' )
       when 'last-month'     then toDate.clone().subtract(1,  'month')
       when 'last-3-months'  then toDate.clone().subtract(3,  'month')
@@ -69,5 +70,5 @@ $ ->
 
     $.getJSON(
       $SCRIPT_ROOT + '/weekly-artist-charts'
-      {username, fromDate, toDate, cumulative}
+      {username, numberOfArtists, fromDate, toDate, cumulative}
       drawChart)

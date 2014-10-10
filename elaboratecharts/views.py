@@ -37,6 +37,7 @@ def index():
 @app.route('/weekly-artist-charts')
 def weekly_artist_charts():
     username = request.args.get('username')
+    number_of_artists = request.args.get('numberOfArtists', type=int)
     from_date = request.args.get('fromDate')
     to_date = request.args.get('toDate')
     cumulative = request.args.get('cumulative', type=lambda x: x == 'true')
@@ -81,7 +82,7 @@ def weekly_artist_charts():
         charts = sorted(charts.iteritems(),
                         key=lambda (__, count): count,
                         reverse=True)
-        results[timestamp] = OrderedDict(islice(charts, 0, 20))
+        results[timestamp] = OrderedDict(islice(charts, 0, number_of_artists))
 
     # Would be better to save document after response is sent.
     dbuser.save()
