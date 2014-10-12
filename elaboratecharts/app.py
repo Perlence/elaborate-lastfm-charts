@@ -26,6 +26,8 @@ js_bundle = Bundle(
     'bootstrap-sass/dist/js/bootstrap.js',
     'moment/min/moment-with-locales.js',
     'highcharts-release/highcharts.js',
+    'ladda-bootstrap/dist/spin.min.js',
+    'ladda-bootstrap/dist/ladda.min.js',
     Bundle(
         'index.coffee',
         filters=['coffeescript']),
@@ -36,6 +38,7 @@ css_bundle = Bundle(
     output='css_all.css')
 env.config['sass_load_paths'] = [
     path.join(path.dirname(__file__), 'bower_components/bootstrap-sass/lib/'),
+    path.join(path.dirname(__file__), 'bower_components/ladda-bootstrap/css/')
 ]
 env.register('js_all', js_bundle)
 env.register('css_all', css_bundle)

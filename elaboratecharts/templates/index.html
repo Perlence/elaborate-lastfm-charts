@@ -1,51 +1,57 @@
 {% extends 'base.html' %}
 
 {% block body %}
-<div class="row">
-  <div id="header-container">
+<div class="row" id="settings-block">
+  <div id="header-container" class="panel-group">
     <div id="header-panel" class="panel panel-default">
-      <div class="panel-heading">Settings</div>
-      <div class="panel-body">
-        <form role="form">
-          <div class="form-group">
-            <label for="username">Username</label>
-            <input id="username" type="text" class="form-control" name="username" placeholder="Enter your username" value="sacret19" />
-          </div>
-          <div class="form-group">
-            <label for="number-of-artists">Number of artists</label>
-            <select id="number-of-artists" class="form-control" name="number-of-artists">
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="15">15</option>
-              <option value="20" selected>20</option>
-              <option value="30">30</option>
-              <option value="50">50</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="timeframe">Default timeframe</label>
-            <select id="timeframe" class="form-control" name="timeframe">
-              <option value="last-7-days">Last 7 days</option>
-              <option value="last-month">Last month</option>
-              <option value="last-3-months" selected>Last 3 months</option>
-              <option value="last-6-months">Last 6 months</option>
-              <option value="last-12-months">Last 12 months</option>
-              <option value="overall">Overall</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <div class="checkbox text-left">
-              <label>
-                <input type="checkbox" id="cumulative" checked> Cumulative
-              </label>
+      <div class="panel-heading">
+        <a data-toggle="collapse" data-parent="#header-container" href="#collapseOne">
+          Settings
+        </a>
+      </div>
+      <div id="collapseOne" class="panel-collapse collapse in">
+        <div class="panel-body">
+          <form role="form">
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input id="username" type="text" class="form-control" name="username" placeholder="Enter your username" value="sacret19" />
             </div>
-          </div>
-          <button class="btn btn-primary btn-block" type="button" id="submit">Submit</button>
-        </form>
+            <div class="form-group">
+              <label for="number-of-artists">Number of artists</label>
+              <select id="number-of-artists" class="form-control" name="number-of-artists">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+                <option value="20" selected>20</option>
+                <option value="30">30</option>
+                <option value="50">50</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="timeframe">Default timeframe</label>
+              <select id="timeframe" class="form-control" name="timeframe">
+                <option value="last-7-days">Last 7 days</option>
+                <option value="last-month">Last month</option>
+                <option value="last-3-months" selected>Last 3 months</option>
+                <option value="last-6-months">Last 6 months</option>
+                <option value="last-12-months">Last 12 months</option>
+                <option value="overall">Overall</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <div class="checkbox text-left">
+                <label>
+                  <input type="checkbox" id="cumulative" checked> Cumulative
+                </label>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-block ladda-button" type="button" id="submit" data-style="slide-left">Submit</button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<div id="chart"></div>
+<div id="chart">&nbsp;</div>
 {% endblock %}

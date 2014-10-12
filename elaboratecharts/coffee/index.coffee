@@ -28,8 +28,10 @@ prepareChart = (timestamps) ->
         lineColor: '#ffffff'
         lineWidth: 1
         marker:
-          lineWidth: 1
-          lineColor: '#ffffff'
+          enabled: false
+      series:
+        animation:
+          complete: -> $(window).resize()
     series: []
   chart = $chart.highcharts()
 
@@ -56,6 +58,8 @@ drawChart = (weeklyCharts) ->
 
 $ ->
   $('#submit').click ->
+    l = Ladda.create(this)
+    l.start()
     username = $('#username').val().trim()
     numberOfArtists = $('#number-of-artists option:selected').val()
     timeframe = $('#timeframe option:selected').val()
@@ -65,3 +69,6 @@ $ ->
       $SCRIPT_ROOT + '/weekly-artist-charts'
       {username, numberOfArtists, timeframe, cumulative}
       drawChart)
+    .complete ->
+      l.stop()
+      $('.collapse').collapse()

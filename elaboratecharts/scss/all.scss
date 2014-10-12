@@ -1,4 +1,24 @@
 @import "bootstrap";
+@import "ladda";
+
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  display: table;
+  #settings-block, #chart {
+    display: table-row;
+    width: 100%;
+  }
+  #settings-block+ #chart {
+    height: 100%;
+  }
+  .highcharts-container {
+    height: auto !important;
+  }
+}
 
 .row {
   margin: 0;
