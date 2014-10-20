@@ -1,0 +1,1 @@
+-e git+https://github.com/Perlence/lastfmclient.git#egg=lastfmclient-0.0.3
