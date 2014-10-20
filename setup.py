@@ -24,7 +24,7 @@ setup(
         'Flask-Assets',
         'gevent',
         'mongokit',
-        'pylast',
+        'lastfmclient',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',

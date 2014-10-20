@@ -8,7 +8,8 @@ import mongokit
 from flask import Blueprint, jsonify, request, render_template, g
 from gevent import spawn
 from gevent.pool import Pool
-from pylast import LastFMNetwork, WSError
+from lastfmclient import LastfmClient
+from lastfmclient.exceptions import LastfmError
 
 from . import config
 from .models import documents
@@ -43,13 +44,12 @@ def weekly_artist_charts():
     dbuser = (g.db.User.find_one({'_id': username}) or
               g.db.User({'_id': username}))
 
-    api = LastFMNetwork(config.API_KEY, config.API_SECRET)
-    user = api.get_user(username)
+    api = LastfmClient(api_key=config.API_KEY, api_secret=config.API_SECRET)
 
     try:
-        registered = get_registered(dbuser, user)
-    except WSError as err:
-        response = jsonify(errors=[err.details])
+        registered = get_registered(dbuser, api)
+    except LastfmError as exc:
+        response = jsonify(errors=[exc.message])
         response.status_code = 500
         return response
 
@@ -77,7 +77,7 @@ def weekly_artist_charts():
                   for s, e in span_range]
 
     pool = Pool(72)
-    greenlets = [(s, pool.spawn(get_weekly_artist_charts, dbuser, user, s, e))
+    greenlets = [(s, pool.spawn(get_weekly_artist_charts, dbuser, api, s, e))
                  for s, e in span_range]
     pool.join()
 
@@ -86,9 +86,9 @@ def weekly_artist_charts():
     for from_date, greenlet in greenlets:
         try:
             charts = greenlet.get()
-        except WSError as err:
+        except LastfmError as exc:
             errors.append('Failed to get charts for %s: %s' %
-                          (from_date.isoformat(), err.details))
+                          (from_date.isoformat(), exc.message))
         else:
             items = OrderedDict((item['artist'], item['count'])
                                 for item in charts)
@@ -116,15 +116,15 @@ def weekly_artist_charts():
     return jsonify(results)
 
 
-def get_registered(dbuser, user):
+def get_registered(dbuser, api):
     registered = dbuser.get('registered')
     if registered is None:
-        registered = user.get_registered()
+        registered = api.user.get_info(dbuser['_id'])['registered']['unixtime']
         dbuser['registered'] = arrow.get(registered)
     return registered
 
 
-def get_weekly_artist_charts(dbuser, user, from_date, to_date):
+def get_weekly_artist_charts(dbuser, api, from_date, to_date):
     week_start = arrow.get().floor('week')
     is_current_week = week_start.replace(hours=-12) == from_date
 
@@ -135,13 +135,24 @@ def get_weekly_artist_charts(dbuser, user, from_date, to_date):
         for charts in weekly_artist_charts:
             if charts['from'] == from_date:
                 return charts['artists']
-        charts = user.get_weekly_artist_charts(from_date.timestamp,
-                                               to_date.timestamp)
+        charts = api.user.get_weekly_artist_chart(dbuser['_id'],
+                                                  from_=from_date.timestamp,
+                                                  to=to_date.timestamp)
     else:
-        charts = user.get_weekly_artist_charts()
+        charts = api.user.get_weekly_artist_chart(dbuser['_id'])
 
-    result = [{'artist': topitem.item.network, 'count': topitem.weight}
-              for topitem in charts]
+    charts_artist = charts.get('artist')
+    if charts_artist is None:
+        return []
+    elif isinstance(charts_artist, list):
+        result = [{'artist': artist['name'],
+                   'count': int(artist['playcount'])}
+                  for artist in charts_artist]
+    else:
+        artist = charts_artist
+        result = [{'artist': artist['name'],
+                   'count': int(artist['playcount'])}]
+
     if not is_current_week:
         dbuser['weekly_artist_charts'].append({
             'from': from_date,
