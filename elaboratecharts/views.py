@@ -76,7 +76,7 @@ def weekly_artist_charts():
                    e.replace(hours=-12, microseconds=+1))
                   for s, e in span_range]
 
-    pool = Pool(72)
+    pool = Pool(config.POOL_SIZE)
     greenlets = [(s, pool.spawn(get_weekly_artist_charts, dbuser, api, s, e))
                  for s, e in span_range]
     pool.join()
