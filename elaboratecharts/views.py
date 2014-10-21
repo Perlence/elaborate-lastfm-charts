@@ -2,12 +2,14 @@ from __future__ import division
 
 from collections import OrderedDict, defaultdict
 from functools import partial
-from itertools import islice
+from itertools import islice, izip
 
 import arrow
 import mongokit
 from flask import Blueprint, jsonify, request, render_template, g
-from gevent import spawn, sleep, joinall
+from gevent import spawn, sleep, joinall, wait
+from gevent.pool import Pool
+from gevent.lock import RLock
 from lastfmclient import LastfmClient
 from lastfmclient.exceptions import LastfmError
 
@@ -17,7 +19,30 @@ from .models import documents
 
 POOL_SIZE = 52
 LASTFM_PAGE_SIZE = 200
-LASTFM_TIMEOUT = 0.25
+LASTFM_INTERVAL = 0.25
+
+
+class ThrottlingPool(Pool):
+    def __init__(self, size=None, interval=None, greenlet_class=None):
+        self.interval = interval
+        self._lock = RLock()
+        super(ThrottlingPool, self).__init__(size, greenlet_class)
+
+    def wait_available(self):
+        wait(self._lock, self._semaphore)
+
+    def add(self, greenlet):
+        self._lock.acquire()
+        try:
+            super(ThrottlingPool, self).add(greenlet)
+        except:
+            self._lock.release()
+            raise
+        else:
+            sleep(self.interval)
+            self._lock.release()
+
+pool = ThrottlingPool(POOL_SIZE, LASTFM_INTERVAL)
 
 app = Blueprint('elaboratecharts', __name__)
 
@@ -81,11 +106,15 @@ def weekly_artist_charts():
                    e.replace(hours=-12, microseconds=+1))
                   for s, e in span_range]
 
+    greenlets = [spawn(get_weekly_artist_charts, dbuser, api, s, e)
+                 for s, e in span_range]
+    joinall(greenlets)
+
     results = OrderedDict()
     errors = []
-    for s, e in span_range:
+    for (s, __), greenlet in izip(span_range, greenlets):
         try:
-            charts = get_weekly_artist_charts(dbuser, api, s, e)
+            charts = greenlet.get()
         except LastfmError as exc:
             errors.append('Failed to get charts for %s: %s' %
                           (s.isoformat(), exc.message))
@@ -135,14 +164,14 @@ def get_weekly_artist_charts(dbuser, api, from_date, to_date):
                 return OrderedDict((chart['artist'], chart['count'])
                                    for chart in charts['artists'])
 
-    get_page = partial(spawn, get_recent_tracks, dbuser, api,
+    get_page = partial(pool.spawn, get_recent_tracks, dbuser, api,
                        from_date, to_date)
     greenlets = [get_page(page=1)]
     total_pages, tracks = greenlets[0].get()
     for page in range(2, total_pages + 1):
         greenlet = get_page(page=page)
         greenlets.append(greenlet)
-        sleep(LASTFM_TIMEOUT)
+        sleep(LASTFM_INTERVAL)
     joinall(greenlets)
 
     charts = defaultdict(int)
@@ -166,7 +195,6 @@ def get_weekly_artist_charts(dbuser, api, from_date, to_date):
 
 
 def get_recent_tracks(dbuser, api, from_date, to_date, page):
-    print page
     response = api.user.get_recent_tracks(
         dbuser['_id'], from_=from_date.timestamp, to=to_date.timestamp,
         limit=LASTFM_PAGE_SIZE, page=page)
