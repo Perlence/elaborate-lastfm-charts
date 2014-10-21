@@ -1,1 +1,0 @@
--e git+https://github.com/jakubroztocil/lastfmclient.git#egg=lastfmclient-0.0.3
