@@ -31,7 +31,7 @@ prepareChart = (timestamps) ->
           enabled: false
       series:
         animation:
-          complete: -> $(window).resize()
+          complete: -> chart.reflow()
     series: []
   chart = $chart.highcharts()
 
@@ -50,7 +50,7 @@ drawChart = (weeklyCharts, numberOfArtists, cumulative) ->
   for timestamp, topitems of weeklyCharts
     topitems = _.sortBy(_.pairs(topitems), ([key, value]) -> value)
     weeklyCharts[timestamp] = {}
-    for [key, value] in topitems.reverse()[0..9]
+    for [key, value] in topitems.reverse()[0 .. (numberOfArtists - 1)]
       weeklyCharts[timestamp][key] = value
 
   artists = {}
@@ -82,8 +82,8 @@ spanRange = (start, end, args...) ->
 
 $ ->
   $('#submit').click ->
-    l = Ladda.create(this)
-    l.start()
+    ladda = Ladda.create(this)
+    ladda.start()
     username = $('#username').val().trim()
     numberOfArtists = $('#number-of-artists option:selected').val()
     timeframe = $('#timeframe option:selected').val()
@@ -100,15 +100,21 @@ $ ->
         when 'last-12-months' then toDate.clone().subtract(12, 'month')
         when 'overall'        then moment.utc(info.registered * 1000)
 
-      Promise.map spanRange(fromDate, toDate, 1, 'week'), (range) ->
+      ranges = spanRange(fromDate, toDate, 1, 'week')
+      progress = 0
+      Promise.map ranges, (range) ->
         [fromDate, toDate] = range
         params = {username, fromDate, toDate}
         $.getJSON($SCRIPT_ROOT + '/weekly-artist-charts', params)
         .then (weeklyCharts) ->
-          # Put progress bar here
+          progress += 1
+          ladda.setProgress(progress / ranges.length)
           # if weeklyCharts.error?
           #   # Put error handling here
           weeklyCharts
+        .fail ->
+          # Failed to get weekly charts.
+          ladda.stop()
       .then (weeks) ->
         weeklyCharts = {}
         for week in weeks
@@ -116,5 +122,8 @@ $ ->
             if key != 'error'
               weeklyCharts[key] = value
         drawChart(weeklyCharts, numberOfArtists, cumulative)
-        l.stop()
-        $('.collapse').collapse()
+        ladda.stop()
+        # $('.collapse').collapse()
+    .fail ->
+      # Failed to get user info.
+      ladda.stop()
