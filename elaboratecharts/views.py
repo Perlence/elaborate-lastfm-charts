@@ -67,88 +67,28 @@ def index():
 @app.route('/weekly-artist-charts')
 def weekly_artist_charts():
     username = request.args.get('username')
-    number_of_artists = request.args.get('numberOfArtists', type=int)
-    timeframe = request.args.get('timeframe')
-    cumulative = request.args.get('cumulative', type=lambda x: x == 'true')
+    from_date = request.args.get('fromDate')
+    to_date = request.args.get('toDate')
 
     dbuser = (g.db.User.find_one({'_id': username}) or
               g.db.User({'_id': username}))
 
     api = LastfmClient(api_key=config.API_KEY, api_secret=config.API_SECRET)
 
-    try:
-        registered = get_registered(dbuser, api)
-    except LastfmError as exc:
-        response = jsonify(errors=[exc.message])
-        response.status_code = 500
-        return response
-
-    to_date = arrow.get()
-    if timeframe == 'last-7-days':
-        from_date = to_date.replace(weeks=-1)
-    elif timeframe == 'last-month':
-        from_date = to_date.replace(months=-1)
-    elif timeframe == 'last-3-months':
-        from_date = to_date.replace(months=-3)
-    elif timeframe == 'last-6-months':
-        from_date = to_date.replace(months=-6)
-    elif timeframe == 'last-12-months':
-        from_date = to_date.replace(months=-12)
-    elif timeframe == 'overall':
-        from_date = arrow.get(registered)
-    else:
-        response = jsonify(errors=['Unrecognized timeframe'])
-        response.status_code = 400
-        return response
-
-    span_range = arrow.Arrow.span_range('week', from_date, to_date)
-    span_range = [(s.replace(hours=-12),
-                   e.replace(hours=-12, microseconds=+1))
-                  for s, e in span_range]
-
-    greenlets = [spawn(get_weekly_artist_charts, dbuser, api, s, e)
-                 for s, e in span_range]
-    joinall(greenlets)
+    from_date = arrow.get(from_date)
+    to_date = arrow.get(to_date)
 
     results = OrderedDict()
-    errors = []
-    for (s, __), greenlet in izip(span_range, greenlets):
-        try:
-            charts = greenlet.get()
-        except LastfmError as exc:
-            errors.append('Failed to get charts for %s: %s' %
-                          (s.isoformat(), exc.message))
-        else:
-            results[s.timestamp] = charts
-
-    if cumulative:
-        artists_acc = defaultdict(int)
-        for timestamp, charts in results.iteritems():
-            for artist, count in charts.iteritems():
-                artists_acc[artist] += charts[artist]
-                charts[artist] = artists_acc[artist]
-            for artist, count in artists_acc.iteritems():
-                if artist not in charts:
-                    charts[artist] = count
-
-    # Limit the number of artists
-    for timestamp, charts in results.iteritems():
-        charts = sorted(charts.iteritems(),
-                        key=lambda (__, count): count,
-                        reverse=True)
-        results[timestamp] = OrderedDict(islice(charts, 0, number_of_artists))
+    try:
+        charts = get_weekly_artist_charts(dbuser, api, from_date, to_date)
+    except LastfmError as exc:
+        results['error'] = 'Failed to get charts for %s: %s' % (
+            from_date.isoformat(), exc.message)
+    else:
+        results[from_date.timestamp] = charts
 
     spawn(dbuser.save)
-    results['errors'] = errors
     return jsonify(results)
-
-
-def get_registered(dbuser, api):
-    registered = dbuser.get('registered')
-    if registered is None:
-        registered = api.user.get_info(dbuser['_id'])['registered']['unixtime']
-        dbuser['registered'] = arrow.get(registered)
-    return registered
 
 
 def get_weekly_artist_charts(dbuser, api, from_date, to_date):
@@ -160,7 +100,7 @@ def get_weekly_artist_charts(dbuser, api, from_date, to_date):
     if not is_current_week:
         # Naive search
         for charts in weekly_artist_charts:
-            if charts['from'] == from_date:
+            if charts['from'] == from_date and charts['to'] == to_date:
                 return OrderedDict((chart['artist'], chart['count'])
                                    for chart in charts['artists'])
 

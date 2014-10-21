@@ -26,8 +26,10 @@ js_bundle = Bundle(
     'bootstrap-sass/dist/js/bootstrap.js',
     'moment/min/moment-with-locales.js',
     'highcharts-release/highcharts.js',
-    'ladda-bootstrap/dist/spin.min.js',
-    'ladda-bootstrap/dist/ladda.min.js',
+    'ladda-bootstrap/dist/spin.js',
+    'ladda-bootstrap/dist/ladda.js',
+    'bluebird/js/browser/bluebird.js',
+    'lodash/dist/lodash.js',
     Bundle(
         'index.coffee',
         filters=['coffeescript']),

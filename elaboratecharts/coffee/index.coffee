@@ -36,12 +36,26 @@ prepareChart = (timestamps) ->
   chart = $chart.highcharts()
 
 
-drawChart = (weeklyCharts) ->
+drawChart = (weeklyCharts, numberOfArtists, cumulative) ->
+  if cumulative
+    artistsAcc = {}
+    for timestamp, topitems of weeklyCharts
+      for artist, count of topitems
+        artistsAcc[artist] = (artistsAcc[artist] ? 0) + count
+      for artist, count of artistsAcc
+        if artist not in topitems
+          topitems[artist] = count
+
+  # Limit the number of artists
+  for timestamp, topitems of weeklyCharts
+    topitems = _.sortBy(_.pairs(topitems), ([key, value]) -> value)
+    weeklyCharts[timestamp] = {}
+    for [key, value] in topitems.reverse()[0..9]
+      weeklyCharts[timestamp][key] = value
+
   artists = {}
   timestamps = []
   for timestamp, topitems of weeklyCharts
-    if timestamp == 'errors'
-      continue
     timestamps.push(timestamp)
     for artist, count of topitems
       artists[artist] ?= {}
@@ -56,6 +70,16 @@ drawChart = (weeklyCharts) ->
   chart.redraw()
 
 
+spanRange = (start, end, args...) ->
+  result = []
+  s = start.clone()
+  while s < end
+    e = moment(Math.min(end, s.clone().add(1, 'week')))
+    result.push([s.unix(), e.unix()])
+    s.add(args...)
+  return result
+
+
 $ ->
   $('#submit').click ->
     l = Ladda.create(this)
@@ -65,10 +89,30 @@ $ ->
     timeframe = $('#timeframe option:selected').val()
     cumulative = $('#cumulative').is(':checked')
 
-    $.getJSON(
-      $SCRIPT_ROOT + '/weekly-artist-charts'
-      {username, numberOfArtists, timeframe, cumulative}
-      drawChart)
-    .complete ->
+    toDate = moment.utc()
+    fromDate = switch timeframe
+      when 'last-7-days'    then toDate.clone().subtract(1,  'week' )
+      when 'last-month'     then toDate.clone().subtract(1,  'month')
+      when 'last-3-months'  then toDate.clone().subtract(3,  'month')
+      when 'last-6-months'  then toDate.clone().subtract(6,  'month')
+      when 'last-12-months' then toDate.clone().subtract(12, 'month')
+      when 'overall'        then moment.utc(1108296002000)  # the earliest date
+    fromDate.startOf('week').add(12, 'hours')
+
+    Promise.map spanRange(fromDate, toDate, 1, 'week'), ([fromDate, toDate]) ->
+      params = {username, fromDate, toDate}
+      $.getJSON($SCRIPT_ROOT + '/weekly-artist-charts', params)
+      .then (weeklyCharts) ->
+        # Put progress bar here
+        # if weeklyCharts.error?
+        #   # Put error handling here
+        weeklyCharts
+    .then (weeks) ->
+      weeklyCharts = {}
+      for week in weeks
+        for key, value of week
+          if key != 'error'
+            weeklyCharts[key] = value
+      drawChart(weeklyCharts, numberOfArtists, cumulative)
       l.stop()
       $('.collapse').collapse()
