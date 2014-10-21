@@ -89,30 +89,32 @@ $ ->
     timeframe = $('#timeframe option:selected').val()
     cumulative = $('#cumulative').is(':checked')
 
-    toDate = moment.utc()
-    fromDate = switch timeframe
-      when 'last-7-days'    then toDate.clone().subtract(1,  'week' )
-      when 'last-month'     then toDate.clone().subtract(1,  'month')
-      when 'last-3-months'  then toDate.clone().subtract(3,  'month')
-      when 'last-6-months'  then toDate.clone().subtract(6,  'month')
-      when 'last-12-months' then toDate.clone().subtract(12, 'month')
-      when 'overall'        then moment.utc(1108296002000)  # the earliest date
-    fromDate.startOf('week').add(12, 'hours')
+    $.getJSON($SCRIPT_ROOT + '/info', {username})
+    .then (info) ->
+      toDate = moment.utc()
+      fromDate = switch timeframe
+        when 'last-7-days'    then toDate.clone().subtract(1,  'week' )
+        when 'last-month'     then toDate.clone().subtract(1,  'month')
+        when 'last-3-months'  then toDate.clone().subtract(3,  'month')
+        when 'last-6-months'  then toDate.clone().subtract(6,  'month')
+        when 'last-12-months' then toDate.clone().subtract(12, 'month')
+        when 'overall'        then moment.utc(info.registered * 1000)
 
-    Promise.map spanRange(fromDate, toDate, 1, 'week'), ([fromDate, toDate]) ->
-      params = {username, fromDate, toDate}
-      $.getJSON($SCRIPT_ROOT + '/weekly-artist-charts', params)
-      .then (weeklyCharts) ->
-        # Put progress bar here
-        # if weeklyCharts.error?
-        #   # Put error handling here
-        weeklyCharts
-    .then (weeks) ->
-      weeklyCharts = {}
-      for week in weeks
-        for key, value of week
-          if key != 'error'
-            weeklyCharts[key] = value
-      drawChart(weeklyCharts, numberOfArtists, cumulative)
-      l.stop()
-      $('.collapse').collapse()
+      Promise.map spanRange(fromDate, toDate, 1, 'week'), (range) ->
+        [fromDate, toDate] = range
+        params = {username, fromDate, toDate}
+        $.getJSON($SCRIPT_ROOT + '/weekly-artist-charts', params)
+        .then (weeklyCharts) ->
+          # Put progress bar here
+          # if weeklyCharts.error?
+          #   # Put error handling here
+          weeklyCharts
+      .then (weeks) ->
+        weeklyCharts = {}
+        for week in weeks
+          for key, value of week
+            if key != 'error'
+              weeklyCharts[key] = value
+        drawChart(weeklyCharts, numberOfArtists, cumulative)
+        l.stop()
+        $('.collapse').collapse()

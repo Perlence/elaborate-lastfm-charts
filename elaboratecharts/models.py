@@ -24,6 +24,7 @@ class User(RootDocument):
     __collection__ = 'user'
     structure = {
         '_id': unicode,  # Username
+        'registered': ArrowType(),
         'weekly_artist_charts': [{
             'from': ArrowType(),
             'to': ArrowType(),

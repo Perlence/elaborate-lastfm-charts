@@ -91,6 +91,23 @@ def weekly_artist_charts():
     return jsonify(results)
 
 
+@app.route('/info')
+def get_registered():
+    username = request.args.get('username')
+
+    dbuser = (g.db.User.find_one({'_id': username}) or
+              g.db.User({'_id': username}))
+
+    api = LastfmClient(api_key=config.API_KEY, api_secret=config.API_SECRET)
+
+    registered = dbuser.get('registered')
+    if registered is None:
+        registered = api.user.get_info(username)['registered']['unixtime']
+        dbuser['registered'] = arrow.get(registered)
+
+    return jsonify(registered=int(registered))
+
+
 def get_weekly_artist_charts(dbuser, api, from_date, to_date):
     week_start = arrow.get().floor('week')
     is_current_week = week_start.replace(hours=-12) == from_date
@@ -138,7 +155,10 @@ def get_recent_tracks(dbuser, api, from_date, to_date, page):
     response = api.user.get_recent_tracks(
         dbuser['_id'], from_=from_date.timestamp, to=to_date.timestamp,
         limit=LASTFM_PAGE_SIZE, page=page)
-    total_pages = int(response['@attr']['totalPages'])
+    try:
+        total_pages = int(response['@attr']['totalPages'])
+    except KeyError:
+        return 0, []
     recent_tracks = response.get('track')
     flatten = lambda track: {
         'artist': track['artist']['#text'],
