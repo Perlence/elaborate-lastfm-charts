@@ -11,9 +11,9 @@ prepareChart = (timestamps) ->
     xAxis:
       categories: timestamps.map (ts) ->
         ts = moment.unix(ts)
-        ts.format('YYYY-MM-DD') +
+        ts.clone().subtract(1, 'week').format('YYYY-MM-DD') +
           '—' +
-          ts.subtract(1, 'week').format('YYYY-MM-DD')
+          ts.format('YYYY-MM-DD')
       tickmarkPlacement: 'on'
       title:
         enabled: false
@@ -151,7 +151,11 @@ $ ->
             weeklyCharts[key] = value
       drawChart(weeklyCharts, numberOfArtists, cumulative)
       ladda.stop()
+      $('#settings-block').addClass('collapsed')
     .catch ->
       # Failed to get user info or there were server-side errors while getting
       # weekly charts.
       ladda.stop()
+
+  $('#settings-block .navbar-toggle').click ->
+    $('#settings-block').toggleClass('collapsed')

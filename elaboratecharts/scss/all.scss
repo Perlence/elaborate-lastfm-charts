@@ -4,43 +4,49 @@ $icon-font-path: "/static/fonts/";
 @import "bootstrap";
 @import "ladda";
 
-
 html, body {
   height: 100%;
-  width: 100%;
-}
-
-body {
-  display: table;
-  #settings-block, #chart {
-    display: table-row;
-    width: 100%;
-  }
-  #settings-block+ #chart {
-    height: 100%;
-  }
-  .highcharts-container {
-    height: auto !important;
-  }
 }
 
 .row {
   margin: 0;
 }
 
-#header-container {
-  @include make-xs-column(12);
+#settings-block {
+  @include make-xs-column(10);
+  @include make-sm-column(6);
+  @include make-md-column(4);
+  @include transition(width 0.3s);
 
-  @include make-sm-column(10);
-  @include make-sm-column-offset(1);
-
-  @include make-md-column(8);
-  @include make-md-column-offset(2);
-
-  @include make-lg-column(6);
-  @include make-lg-column-offset(3);
+  background: $navbar-inverse-bg;
+  color: $navbar-inverse-color;
+  height: 100%;
+  padding: 0;
+  position: absolute;
+  z-index: 9999;
+  form {
+    @include transition(opacity 0.3s);
+    padding: 15px;
+  }
+  &.collapsed {
+    width: 72px;
+    .navbar-brand {
+      display: none;
+    }
+    form {
+      opacity: 0;
+    }
+  }
 }
 
-#header-panel {
-  margin-top: 20px;
+.navbar {
+  border: none;
+  margin: 0;
+  .navbar-toggle {
+    display: block !important;
+  }
+}
+
+#chart {
+  height: 100%;
 }
