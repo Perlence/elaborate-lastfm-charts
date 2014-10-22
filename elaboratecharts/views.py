@@ -95,7 +95,6 @@ def weekly_artist_charts():
     finally:
         timeout.cancel()
 
-    spawn(dbuser.save)
     return jsonify(results)
 
 
@@ -110,10 +109,15 @@ def get_registered():
 
     registered = dbuser.get('registered')
     if registered is None:
-        registered = api.user.get_info(username)['registered']['unixtime']
-        dbuser['registered'] = arrow.get(registered)
+        registered = arrow.get(
+            api.user.get_info(username)['registered']['unixtime'])
+        dbuser['registered'] = registered
+        spawn(g.db.User.find_and_modify,
+              {'_id': dbuser['_id']},
+              {'$set': {'registered': registered.datetime}},
+              upsert=True)
 
-    return jsonify(registered=int(registered))
+    return jsonify(registered=registered.timestamp)
 
 
 def get_weekly_artist_charts(dbuser, api, from_date, to_date):
@@ -145,10 +149,13 @@ def get_weekly_artist_charts(dbuser, api, from_date, to_date):
         result = OrderedDict([(artist['name'], int(artist['playcount']))])
 
     if not is_current_week:
-        dbuser['weekly_artist_charts'].append({
-            'from': from_date,
-            'to': to_date,
+        doc = {
+            'from': from_date.datetime,
+            'to': to_date.datetime,
             'artists': [{'artist': artist_, 'count': count}
                         for artist_, count in result.iteritems()],
-        })
+        }
+        spawn(g.db.User.find_and_modify,
+              {'_id': dbuser['_id']},
+              {'$push': {'weekly_artist_charts': doc}})
     return result
