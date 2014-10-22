@@ -1,5 +1,9 @@
+@import "_variables";
+$icon-font-path: "/static/fonts/";
+
 @import "bootstrap";
 @import "ladda";
+
 
 html, body {
   height: 100%;

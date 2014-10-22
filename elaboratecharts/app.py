@@ -5,7 +5,7 @@ monkey.patch_all(select=False, thread=False)
 from functools import partial
 from os import path
 
-from flask import Flask
+from flask import Flask, send_from_directory
 from flask.ext.assets import Environment, Bundle
 from werkzeug.serving import run_with_reloader
 
@@ -46,6 +46,13 @@ env.register('js_all', js_bundle)
 env.register('css_all', css_bundle)
 
 app.register_blueprint(elaboratecharts)
+
+
+@app.route('/static/fonts/<path:fontname>')
+def static_fonts(fontname):
+    directory = path.join(path.dirname(__file__),
+                          'bower_components/bootstrap-sass/fonts/')
+    return send_from_directory(directory, fontname)
 
 
 def start(debug=False):
