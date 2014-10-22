@@ -1,13 +1,11 @@
 from __future__ import division
 
-from collections import OrderedDict, defaultdict
-from functools import partial
-from itertools import islice, izip
+from collections import OrderedDict
 
 import arrow
 import mongokit
 from flask import Blueprint, jsonify, request, render_template, g
-from gevent import Timeout, spawn, sleep, joinall, wait
+from gevent import Timeout, spawn, sleep, wait
 from gevent.pool import Pool
 from gevent.lock import RLock
 from lastfmclient import LastfmClient
@@ -67,7 +65,7 @@ def index():
 
 @app.route('/weekly-artist-charts')
 def weekly_artist_charts():
-    username = request.args.get('username')
+    username = request.args.get('username').lower()
     from_date = request.args.get('fromDate')
     to_date = request.args.get('toDate')
 
@@ -138,7 +136,7 @@ def get_weekly_artist_charts(dbuser, api, from_date, to_date):
 
     charts_artist = charts.get('artist')
     if charts_artist is None:
-        return []
+        return OrderedDict()
     elif isinstance(charts_artist, list):
         result = OrderedDict((artist['name'], int(artist['playcount']))
                              for artist in charts_artist)
