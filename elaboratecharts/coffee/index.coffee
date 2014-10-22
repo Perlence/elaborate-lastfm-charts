@@ -82,6 +82,13 @@ spanRange = (start, end, args...) ->
   return result
 
 
+getJSON = (url, params) ->
+  new Promise (resolve, reject) ->
+    $.getJSON(url, params)
+    .done (result) -> resolve(result)
+    .fail (jqxhr, textStatus, error) -> reject(error)
+
+
 $ ->
   $('#submit').click ->
     ladda = Ladda.create(this)
@@ -91,7 +98,7 @@ $ ->
     timeframe = $('#timeframe option:selected').val()
     cumulative = $('#cumulative').is(':checked')
 
-    $.getJSON($SCRIPT_ROOT + '/info', {username})
+    getJSON($SCRIPT_ROOT + '/info', {username})
     .then (info) ->
       toDate = moment.utc()
       fromDate = switch timeframe
@@ -108,25 +115,25 @@ $ ->
       Promise.map ranges, (range) ->
         [fromDate, toDate] = range
         params = {username, fromDate, toDate}
-        $.getJSON($SCRIPT_ROOT + '/weekly-artist-charts', params)
+        getJSON($SCRIPT_ROOT + '/weekly-artist-charts', params)
         .then (weeklyCharts) ->
           progress += 1
           ladda.setProgress(progress / ranges.length)
           # if weeklyCharts.error?
           #   # Put error handling here
           weeklyCharts
-        .fail ->
+        .catch ->
           # Failed to get weekly charts.
           ladda.stop()
-      .then (weeks) ->
-        weeklyCharts = {}
-        for week in weeks.reverse()
-          for key, value of week
-            if key != 'error'
-              weeklyCharts[key] = value
-        drawChart(weeklyCharts, numberOfArtists, cumulative)
-        ladda.stop()
-        # $('.collapse').collapse()
-    .fail ->
+    .then (weeks) ->
+      weeklyCharts = {}
+      for week in weeks.reverse()
+        for key, value of week
+          if key != 'error'
+            weeklyCharts[key] = value
+      drawChart(weeklyCharts, numberOfArtists, cumulative)
+      ladda.stop()
+      # $('.collapse').collapse()
+    .catch ->
       # Failed to get user info.
       ladda.stop()
