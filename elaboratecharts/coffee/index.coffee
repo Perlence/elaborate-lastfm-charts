@@ -38,29 +38,47 @@ prepareChart = (timestamps) ->
   chart = $chart.highcharts()
 
 
+sortObject = (obj, func, options) ->
+  result = {}
+  pairs = _.sortBy(_.pairs(obj), ([key, value]) -> func(key, value))
+  if options?.reverse
+    pairs = pairs.reverse()
+  if options?.limit
+    pairs = pairs[0 .. (options?.limit - 1)]
+  for [key, value] in pairs
+    result[key] = value
+  return result
+
+
 drawChart = (weeklyCharts, numberOfArtists, cumulative) ->
   if cumulative
     artistsAcc = {}
     for timestamp, topitems of weeklyCharts
       for artist, count of topitems
-        artistsAcc[artist] = (artistsAcc[artist] ? 0) + count
+        artistsAcc[artist] ?= 0
+        artistsAcc[artist] += count
       for artist, count of artistsAcc
-        if artist not in topitems
-          topitems[artist] = count
+        topitems[artist] = count
 
-  # Limit the number of artists
+  # Limit the number of artists per week
+  artistsTotal = {}
   for timestamp, topitems of weeklyCharts
-    topitems = _.sortBy(_.pairs(topitems), ([key, value]) -> value)
-    weeklyCharts[timestamp] = {}
-    for [key, value] in topitems.reverse()[0 .. (numberOfArtists - 1)]
-      weeklyCharts[timestamp][key] = value
+    weeklyCharts[timestamp] = sortObject(topitems, ((__, value) -> value),
+                                         reverse: true, limit: numberOfArtists)
+    for artist, count of weeklyCharts[timestamp]
+      artistsTotal[artist] ?= 0
+      if cumulative
+        artistsTotal[artist] = count
+      else
+        artistsTotal[artist] += count
+  artistsTotal = sortObject(artistsTotal, (__, value) -> value)
 
   artists = {}
+  artists[artist] = {} for artist of artistsTotal
   timestamps = []
   for timestamp, topitems of weeklyCharts
     timestamps.push(timestamp)
     for artist, count of topitems
-      artists[artist] ?= {}
       artists[artist][timestamp] = count
 
   chart = prepareChart(timestamps)
@@ -133,7 +151,7 @@ $ ->
             weeklyCharts[key] = value
       drawChart(weeklyCharts, numberOfArtists, cumulative)
       ladda.stop()
-      # $('.collapse').collapse()
     .catch ->
-      # Failed to get user info.
+      # Failed to get user info or there were server-side errors while getting
+      # weekly charts.
       ladda.stop()
