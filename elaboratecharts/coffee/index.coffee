@@ -11,7 +11,9 @@ prepareChart = (timestamps) ->
     xAxis:
       categories: timestamps.map (ts) ->
         ts = moment.unix(ts)
-        ts.format('YYYY-MM-DD') + '—' + ts.add(1, 'week').format('YYYY-MM-DD')
+        ts.format('YYYY-MM-DD') +
+          '—' +
+          ts.subtract(1, 'week').format('YYYY-MM-DD')
       tickmarkPlacement: 'on'
       title:
         enabled: false
@@ -99,8 +101,9 @@ $ ->
         when 'last-6-months'  then toDate.clone().subtract(6,  'month')
         when 'last-12-months' then toDate.clone().subtract(12, 'month')
         when 'overall'        then moment.utc(info.registered * 1000)
+      fromDate.startOf('week').add(12, 'hours')
 
-      ranges = spanRange(fromDate, toDate, 1, 'week')
+      ranges = spanRange(fromDate, toDate, 1, 'week').reverse()
       progress = 0
       Promise.map ranges, (range) ->
         [fromDate, toDate] = range
@@ -117,7 +120,7 @@ $ ->
           ladda.stop()
       .then (weeks) ->
         weeklyCharts = {}
-        for week in weeks
+        for week in weeks.reverse()
           for key, value of week
             if key != 'error'
               weeklyCharts[key] = value

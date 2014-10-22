@@ -7,7 +7,7 @@ from itertools import islice, izip
 import arrow
 import mongokit
 from flask import Blueprint, jsonify, request, render_template, g
-from gevent import spawn, sleep, joinall, wait
+from gevent import Timeout, spawn, sleep, joinall, wait
 from gevent.pool import Pool
 from gevent.lock import RLock
 from lastfmclient import LastfmClient
@@ -20,6 +20,7 @@ from .models import documents
 POOL_SIZE = 52
 LASTFM_PAGE_SIZE = 200
 LASTFM_INTERVAL = 0.25
+TIMEOUT = 20
 
 
 class ThrottlingPool(Pool):
@@ -78,14 +79,23 @@ def weekly_artist_charts():
     from_date = arrow.get(from_date)
     to_date = arrow.get(to_date)
 
+    timeout = Timeout(TIMEOUT)
+    timeout.start()
     results = OrderedDict()
     try:
         charts = get_weekly_artist_charts(dbuser, api, from_date, to_date)
     except LastfmError as exc:
         results['error'] = 'Failed to get charts for %s: %s' % (
-            from_date.isoformat(), exc.message)
+            to_date.isoformat(), exc.message)
+    except Timeout as t:
+        if t is not timeout:
+            raise
+        results['error'] = 'Failed to get charts for %s: %s' % (
+            to_date.isoformat(), 'timed out')
     else:
-        results[from_date.timestamp] = charts
+        results[to_date.timestamp] = charts
+    finally:
+        timeout.cancel()
 
     spawn(dbuser.save)
     return jsonify(results)
@@ -120,56 +130,27 @@ def get_weekly_artist_charts(dbuser, api, from_date, to_date):
             if charts['from'] == from_date and charts['to'] == to_date:
                 return OrderedDict((chart['artist'], chart['count'])
                                    for chart in charts['artists'])
+        charts = api.user.get_weekly_artist_chart(dbuser['_id'],
+                                                  from_=from_date.timestamp,
+                                                  to=to_date.timestamp)
+    else:
+        charts = api.user.get_weekly_artist_chart(dbuser['_id'])
 
-    get_page = partial(pool.spawn, get_recent_tracks, dbuser, api,
-                       from_date, to_date)
-    greenlets = [get_page(page=1)]
-    total_pages, tracks = greenlets[0].get()
-    for page in range(2, total_pages + 1):
-        greenlet = get_page(page=page)
-        greenlets.append(greenlet)
-        sleep(LASTFM_INTERVAL)
-    joinall(greenlets)
-
-    charts = defaultdict(int)
-    for greenlet in greenlets:
-        __, tracks = greenlet.get()
-        for track in tracks:
-            charts[track['artist']] += 1
-
-    result = OrderedDict(sorted(charts.iteritems(),
-                                key=lambda (__, v): v,
-                                reverse=True))
+    charts_artist = charts.get('artist')
+    if charts_artist is None:
+        return []
+    elif isinstance(charts_artist, list):
+        result = OrderedDict((artist['name'], int(artist['playcount']))
+                             for artist in charts_artist)
+    else:
+        artist = charts_artist
+        result = OrderedDict([(artist['name'], int(artist['playcount']))])
 
     if not is_current_week:
         dbuser['weekly_artist_charts'].append({
             'from': from_date,
             'to': to_date,
-            'artists': [{'artist': artist, 'count': count}
-                        for artist, count in result.iteritems()],
+            'artists': [{'artist': artist_, 'count': count}
+                        for artist_, count in result.iteritems()],
         })
     return result
-
-
-def get_recent_tracks(dbuser, api, from_date, to_date, page):
-    response = api.user.get_recent_tracks(
-        dbuser['_id'], from_=from_date.timestamp, to=to_date.timestamp,
-        limit=LASTFM_PAGE_SIZE, page=page)
-    try:
-        total_pages = int(response['@attr']['totalPages'])
-    except KeyError:
-        return 0, []
-    recent_tracks = response.get('track')
-    flatten = lambda track: {
-        'artist': track['artist']['#text'],
-        'album': track['album']['#text'],
-        'name': track['name'],
-    }
-    if recent_tracks is None:
-        return 0, []
-    elif isinstance(recent_tracks, list):
-        result = list(map(flatten, recent_tracks))
-    else:
-        track = recent_tracks
-        result = [flatten(track)]
-    return total_pages, result
