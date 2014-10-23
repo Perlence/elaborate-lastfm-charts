@@ -16,7 +16,8 @@ from .models import User
 POOL_SIZE = 52
 LASTFM_PAGE_SIZE = 200
 LASTFM_INTERVAL = 0.25
-TIMEOUT = 20
+RETRIES = 3
+TIMEOUT = 5
 
 
 class ThrottlingPool(Pool):
@@ -30,7 +31,6 @@ class ThrottlingPool(Pool):
 
     def add(self, greenlet):
         self._lock.acquire()
-        print 'acquired'
         try:
             super(ThrottlingPool, self).add(greenlet)
         except:
@@ -63,23 +63,26 @@ def weekly_artist_charts():
     from_date = arrow.get(from_date)
     to_date = arrow.get(to_date)
 
-    timeout = Timeout(TIMEOUT)
-    timeout.start()
-    results = {}
-    try:
-        charts = get_weekly_artist_charts(dbuser, api, from_date, to_date)
-    except LastfmError as exc:
-        results['error'] = 'Failed to get charts for %s: %s' % (
-            to_date.isoformat(), exc.message)
-    except Timeout as t:
-        if t is not timeout:
-            raise
-        results['error'] = 'Failed to get charts for %s: %s' % (
-            to_date.isoformat(), 'timed out')
-    else:
-        results[to_date.timestamp] = charts
-    finally:
-        timeout.cancel()
+    for __ in range(RETRIES):  # try several times
+        timeout = Timeout(TIMEOUT)
+        timeout.start()
+        results = {}
+        try:
+            charts = get_weekly_artist_charts(dbuser, api, from_date, to_date)
+        except LastfmError as exc:
+            results['error'] = 'Failed to get charts for %s: %s' % (
+                to_date.isoformat(), exc.message)
+        except Timeout as t:
+            if t is not timeout:
+                raise
+            results['error'] = 'Failed to get charts for %s: %s' % (
+                to_date.isoformat(), 'timed out')
+        else:
+            results[to_date.timestamp] = charts
+            results.pop('error', None)
+            break
+        finally:
+            timeout.cancel()
 
     return jsonify(results)
 
@@ -117,6 +120,9 @@ def get_weekly_artist_charts(dbuser, api, from_date, to_date):
     else:
         charts = pool.spawn(api.user.get_weekly_artist_chart,
                             dbuser.username).get()
+
+    if charts == 'ok':
+        raise LastfmError('invalid response')
 
     charts_artist = charts.get('artist')
     if charts_artist is None:
