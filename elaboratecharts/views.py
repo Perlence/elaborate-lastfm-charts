@@ -42,7 +42,8 @@ class ThrottlingPool(Pool):
 
 pool = ThrottlingPool(POOL_SIZE, LASTFM_INTERVAL)
 
-redis = Redis()
+redis = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT,
+              db=config.REDIS_DB, password=config.REDIS_PASSWORD)
 app = Blueprint('elaboratecharts', __name__)
 
 
