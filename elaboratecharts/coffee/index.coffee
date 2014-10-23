@@ -12,7 +12,7 @@ prepareChart = (timestamps) ->
       categories: timestamps.map (ts) ->
         ts = moment.unix(ts)
         ts.clone().subtract(1, 'week').format('YYYY-MM-DD') +
-          '—' +
+          ':' +
           ts.format('YYYY-MM-DD')
       tickmarkPlacement: 'on'
       title:
@@ -50,7 +50,7 @@ sortObject = (obj, func, options) ->
   return result
 
 
-drawChart = (weeklyCharts, numberOfArtists, cumulative) ->
+drawChart = (weeklyCharts, numberOfPositions, cumulative) ->
   if cumulative
     artistsAcc = {}
     for timestamp, topitems of weeklyCharts
@@ -64,7 +64,8 @@ drawChart = (weeklyCharts, numberOfArtists, cumulative) ->
   artistsTotal = {}
   for timestamp, topitems of weeklyCharts
     weeklyCharts[timestamp] = sortObject(topitems, ((__, value) -> value),
-                                         reverse: true, limit: numberOfArtists)
+                                         reverse: true,
+                                         limit: numberOfPositions)
     for artist, count of weeklyCharts[timestamp]
       artistsTotal[artist] ?= 0
       if cumulative
@@ -112,7 +113,8 @@ $ ->
     ladda = Ladda.create(this)
     ladda.start()
     username = $('#username').val().trim()
-    numberOfArtists = $('#number-of-artists option:selected').val()
+    chartType = $('#chart-type option:selected').val()
+    numberOfPositions = $('#number-of-artists option:selected').val()
     timeframe = $('#timeframe option:selected').val()
     cumulative = $('#cumulative').is(':checked')
 
@@ -132,8 +134,8 @@ $ ->
       progress = 0
       Promise.map ranges, (range) ->
         [fromDate, toDate] = range
-        params = {username, fromDate, toDate}
-        getJSON($SCRIPT_ROOT + '/weekly-artist-charts', params)
+        params = {username, chartType, fromDate, toDate}
+        getJSON($SCRIPT_ROOT + '/weekly-chart', params)
         .then (weeklyCharts) ->
           progress += 1
           ladda.setProgress(progress / ranges.length)
@@ -149,7 +151,7 @@ $ ->
         for key, value of week
           if key != 'error'
             weeklyCharts[key] = value
-      drawChart(weeklyCharts, numberOfArtists, cumulative)
+      drawChart(weeklyCharts, numberOfPositions, cumulative)
       ladda.stop()
       $('#settings-block').addClass('collapsed')
     .catch ->

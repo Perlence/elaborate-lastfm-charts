@@ -39,46 +39,46 @@ class User(object):
     def set_registered(self, registered):
         self.with_prefix('hset', 'info', 'registered', registered.timestamp)
 
-    def get_cached_charts(self, subtype, from_date, to_date):
+    def get_weekly_chart(self, chart_type, from_date, to_date):
         charts = self.with_prefix(
             'hgetall',
-            '{subtype}:{from_date}_{to_date}'.format(
-                subtype=subtype,
+            'weekly_{chart_type}_chart:{from_date}_{to_date}'.format(
+                chart_type=chart_type,
                 from_date=from_date.timestamp,
                 to_date=to_date.timestamp))
         return dict(zip(charts.iterkeys(), map(int, charts.itervalues())))
 
-    def set_cached_charts(self, subtype, from_date, to_date, charts):
+    def set_weekly_chart(self, chart_type, from_date, to_date, charts):
         for artist, count in charts.iteritems():
             self.with_prefix(
                 'hset',
-                '{subtype}:{from_date}_{to_date}'.format(
-                    subtype=subtype,
+                'weekly_{chart_type}_chart:{from_date}_{to_date}'.format(
+                    chart_type=chart_type,
                     from_date=from_date.timestamp,
                     to_date=to_date.timestamp),
                 artist,
                 count)
 
     def get_weekly_artist_charts(self, from_date, to_date):
-        return self.get_cached_charts('weekly_artist_charts',
-                                      from_date, to_date)
+        return self.get_weekly_chart('weekly_artist_charts',
+                                     from_date, to_date)
 
     def get_weekly_album_charts(self, from_date, to_date):
-        return self.get_cached_charts('weekly_album_charts',
-                                      from_date, to_date)
+        return self.get_weekly_chart('weekly_album_charts',
+                                     from_date, to_date)
 
     def get_weekly_track_charts(self, from_date, to_date):
-        return self.get_cached_charts('weekly_track_charts',
-                                      from_date, to_date)
+        return self.get_weekly_chart('weekly_track_charts',
+                                     from_date, to_date)
 
     def set_weekly_artist_charts(self, from_date, to_date, charts):
-        self.set_cached_charts('weekly_artist_charts',
-                               from_date, to_date, charts)
+        self.set_weekly_chart('weekly_artist_charts',
+                              from_date, to_date, charts)
 
     def set_weekly_album_charts(self, from_date, to_date, charts):
-        self.set_cached_charts('weekly_album_charts',
-                               from_date, to_date, charts)
+        self.set_weekly_chart('weekly_album_charts',
+                              from_date, to_date, charts)
 
     def set_weekly_track_charts(self, from_date, to_date, charts):
-        self.set_cached_charts('weekly_track_charts',
-                               from_date, to_date, charts)
+        self.set_weekly_chart('weekly_track_charts',
+                              from_date, to_date, charts)

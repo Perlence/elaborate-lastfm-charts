@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 from __future__ import division
 
 import arrow
@@ -44,7 +45,7 @@ pool = ThrottlingPool(POOL_SIZE, LASTFM_INTERVAL)
 
 redis = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT,
               db=config.REDIS_DB, password=config.REDIS_PASSWORD)
-app = Blueprint('elaboratecharts', __name__)
+app = Blueprint('elaboratechart', __name__)
 
 
 @app.route('/')
@@ -52,11 +53,17 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/weekly-artist-charts')
-def weekly_artist_charts():
+@app.route('/weekly-chart')
+def weekly_chart():
     username = request.args.get('username').lower()
+    chart_type = request.args.get('chartType').lower()
     from_date = request.args.get('fromDate')
     to_date = request.args.get('toDate')
+
+    if chart_type not in ('artist', 'album', 'track'):
+        response = jsonify(error='Unknown chart type: %s' % chart_type)
+        response.status_code(400)
+        return response
 
     api = LastfmClient(api_key=config.API_KEY, api_secret=config.API_SECRET)
     dbuser = User(redis, username)
@@ -69,17 +76,18 @@ def weekly_artist_charts():
         timeout.start()
         results = {}
         try:
-            charts = get_weekly_artist_charts(dbuser, api, from_date, to_date)
+            chart = get_weekly_chart(api, dbuser, chart_type,
+                                     from_date, to_date)
         except LastfmError as exc:
-            results['error'] = 'Failed to get charts for %s: %s' % (
+            results['error'] = 'Failed to get chart for %s: %s' % (
                 to_date.isoformat(), exc.message)
         except Timeout as t:
             if t is not timeout:
                 raise
-            results['error'] = 'Failed to get charts for %s: %s' % (
+            results['error'] = 'Failed to get chart for %s: %s' % (
                 to_date.isoformat(), 'timed out')
         else:
-            results[to_date.timestamp] = charts
+            results[to_date.timestamp] = chart
             results.pop('error', None)
             break
         finally:
@@ -105,37 +113,48 @@ def get_registered():
     return jsonify(registered=registered.timestamp)
 
 
-def get_weekly_artist_charts(dbuser, api, from_date, to_date):
+def get_weekly_chart(api, dbuser, chart_type, from_date, to_date):
     week_start = arrow.get().floor('week')
     is_current_week = week_start.replace(hours=-12) == from_date
 
+    get_weekly_smth_chart = getattr(api.user,
+                                    'get_weekly_%s_chart' % chart_type)
+
     if not is_current_week:
-        cached_charts = dbuser.get_weekly_artist_charts(from_date, to_date)
-        if cached_charts:
-            return cached_charts
+        cached_chart = dbuser.get_weekly_chart(chart_type,
+                                               from_date, to_date)
+        if cached_chart:
+            return cached_chart
 
-        charts = pool.spawn(api.user.get_weekly_artist_chart,
-                            dbuser.username,
-                            from_=from_date.timestamp,
-                            to=to_date.timestamp).get()
+        response = pool.spawn(get_weekly_smth_chart,
+                              dbuser.username,
+                              from_=from_date.timestamp,
+                              to=to_date.timestamp).get()
     else:
-        charts = pool.spawn(api.user.get_weekly_artist_chart,
-                            dbuser.username).get()
+        response = pool.spawn(get_weekly_smth_chart,
+                              dbuser.username).get()
 
-    if charts == 'ok':
+    if response == 'ok':
         raise LastfmError('invalid response')
 
-    charts_artist = charts.get('artist')
-    if charts_artist is None:
+    chart = response.get(chart_type)
+    if chart is None:
         return {}
-    elif isinstance(charts_artist, list):
-        result = {artist['name']: int(artist['playcount'])
-                  for artist in charts_artist}
+    elif isinstance(chart, list):
+        result = {chart_key(chart_type, item): int(item['playcount'])
+                  for item in chart}
     else:
-        artist = charts_artist
-        result = {artist['name']: int(artist['playcount'])}
+        item = chart
+        result = {chart_key(chart_type, item): int(item['playcount'])}
 
     if not is_current_week:
-        spawn(dbuser.set_weekly_artist_charts, from_date, to_date, result)
+        spawn(dbuser.set_weekly_chart, chart_type, from_date, to_date, result)
 
     return result
+
+
+def chart_key(chart_type, item):
+    if chart_type == 'artist':
+        return item['name']
+    elif chart_type in ('album', 'track'):
+        return item['artist']['#text'] + u' – ' + item['name']
