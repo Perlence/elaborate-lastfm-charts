@@ -23,8 +23,8 @@ setup(
         'Flask',
         'Flask-Assets',
         'gevent',
-        'mongokit',
         'lastfmclient',
+        'redis',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
