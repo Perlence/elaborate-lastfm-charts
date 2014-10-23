@@ -9,11 +9,7 @@ prepareChart = (timestamps) ->
     title:
       text: null
     xAxis:
-      categories: timestamps.map (ts) ->
-        ts = moment.unix(ts)
-        ts.clone().subtract(1, 'week').format('YYYY-MM-DD') +
-          ':' +
-          ts.format('YYYY-MM-DD')
+      categories: timestamps.map (ts) -> moment.unix(ts).format('YYYY-MM-DD')
       tickmarkPlacement: 'on'
       title:
         enabled: false
@@ -50,42 +46,46 @@ sortObject = (obj, func, options) ->
   return result
 
 
-drawChart = (weeklyCharts, numberOfPositions, cumulative) ->
-  if cumulative
-    artistsAcc = {}
-    for timestamp, topitems of weeklyCharts
-      for artist, count of topitems
-        artistsAcc[artist] ?= 0
-        artistsAcc[artist] += count
-      for artist, count of artistsAcc
-        topitems[artist] = count
+drawChart = (charts, numberOfPositions, cumulative) ->
+  weeklyCharts = {}
+  acc = {}
+  for {toDate, chart} in charts
+    weeklyCharts[toDate] = {}
+    if cumulative
+      for item, count of chart ? {}
+        acc[item] ?= 0
+        acc[item] += count
+      for item, count of acc
+        weeklyCharts[toDate][item] = count
+    else
+      weeklyCharts[toDate] = chart
 
   # Limit the number of artists per week
-  artistsTotal = {}
+  totalItems = {}
   for timestamp, topitems of weeklyCharts
     weeklyCharts[timestamp] = sortObject(topitems, ((__, value) -> value),
                                          reverse: true,
                                          limit: numberOfPositions)
-    for artist, count of weeklyCharts[timestamp]
-      artistsTotal[artist] ?= 0
+    for item, count of weeklyCharts[timestamp]
+      totalItems[item] ?= 0
       if cumulative
-        artistsTotal[artist] = count
+        totalItems[item] = count
       else
-        artistsTotal[artist] += count
-  artistsTotal = sortObject(artistsTotal, (__, value) -> value)
+        totalItems[item] += count
+  totalItems = sortObject(totalItems, (__, value) -> value)
 
-  artists = {}
-  artists[artist] = {} for artist of artistsTotal
+  items = {}
+  items[item] = {} for item of totalItems
   timestamps = []
   for timestamp, topitems of weeklyCharts
     timestamps.push(timestamp)
-    for artist, count of topitems
-      artists[artist][timestamp] = count
+    for item, count of topitems
+      items[item][timestamp] = count
 
   chart = prepareChart(timestamps)
-  for artist, weeks of artists
+  for item, weeks of items
     series =
-      name: artist
+      name: item
       data: (weeks[timestamp] ? 0 for timestamp in timestamps)
     chart.addSeries(series, false)
   chart.redraw()
@@ -114,7 +114,7 @@ $ ->
     ladda.start()
     username = $('#username').val().trim()
     chartType = $('#chart-type option:selected').val()
-    numberOfPositions = $('#number-of-artists option:selected').val()
+    numberOfPositions = $('#number-of-positions option:selected').val()
     timeframe = $('#timeframe option:selected').val()
     cumulative = $('#cumulative').is(':checked')
 
@@ -132,26 +132,20 @@ $ ->
 
       ranges = spanRange(fromDate, toDate, 1, 'week').reverse()
       progress = 0
-      Promise.map ranges, (range) ->
-        [fromDate, toDate] = range
+      Promise.map ranges, ([fromDate, toDate]) ->
         params = {username, chartType, fromDate, toDate}
         getJSON($SCRIPT_ROOT + '/weekly-chart', params)
-        .then (weeklyCharts) ->
+        .then (response) ->
           progress += 1
           ladda.setProgress(progress / ranges.length)
-          # if weeklyCharts.error?
+          # if response.error?
           #   # Put error handling here
-          weeklyCharts
+          response
         .catch ->
           # Failed to get weekly charts.
           ladda.stop()
-    .then (weeks) ->
-      weeklyCharts = {}
-      for week in weeks.reverse()
-        for key, value of week
-          if key != 'error'
-            weeklyCharts[key] = value
-      drawChart(weeklyCharts, numberOfPositions, cumulative)
+    .then (charts) ->
+      drawChart(charts.reverse(), numberOfPositions, cumulative)
       ladda.stop()
       $('#settings-block').addClass('collapsed')
     .catch ->

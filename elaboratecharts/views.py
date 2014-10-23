@@ -74,26 +74,26 @@ def weekly_chart():
     for __ in range(RETRIES):  # try several times
         timeout = Timeout(TIMEOUT)
         timeout.start()
-        results = {}
+        result = {'toDate': to_date.timestamp}
         try:
             chart = get_weekly_chart(api, dbuser, chart_type,
                                      from_date, to_date)
         except LastfmError as exc:
-            results['error'] = 'Failed to get chart for %s: %s' % (
+            result['error'] = 'Failed to get chart for %s: %s' % (
                 to_date.isoformat(), exc.message)
         except Timeout as t:
             if t is not timeout:
                 raise
-            results['error'] = 'Failed to get chart for %s: %s' % (
+            result['error'] = 'Failed to get chart for %s: %s' % (
                 to_date.isoformat(), 'timed out')
         else:
-            results[to_date.timestamp] = chart
-            results.pop('error', None)
+            result['chart'] = chart
+            result.pop('error', None)
             break
         finally:
             timeout.cancel()
 
-    return jsonify(results)
+    return jsonify(result)
 
 
 @app.route('/info')
