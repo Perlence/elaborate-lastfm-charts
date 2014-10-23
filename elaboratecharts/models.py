@@ -42,7 +42,7 @@ class User(object):
     def get_cached_charts(self, subtype, from_date, to_date):
         charts = self.with_prefix(
             'hgetall',
-            '{subtype}:{from_date}-{to_date}'.format(
+            '{subtype}:{from_date}_{to_date}'.format(
                 subtype=subtype,
                 from_date=from_date.timestamp,
                 to_date=to_date.timestamp))
@@ -52,7 +52,7 @@ class User(object):
         for artist, count in charts.iteritems():
             self.with_prefix(
                 'hset',
-                '{subtype}:{from_date}-{to_date}'.format(
+                '{subtype}:{from_date}_{to_date}'.format(
                     subtype=subtype,
                     from_date=from_date.timestamp,
                     to_date=to_date.timestamp),
