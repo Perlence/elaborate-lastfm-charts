@@ -50,7 +50,20 @@ app = Blueprint('elaboratechart', __name__)
 
 @app.route('/')
 def index():
+    params = {
+        'username': request.args.get('username'),
+        'chart_type': request.args.get('chart-type'),
+        'number_of_positions': request.args.get('number-of-positions',
+                                                type=int),
+        'timeframe': request.args.get('timeframe'),
+        'cumulative': request.args.get('cumulative',
+                                       type=lambda x: x != 'false'),
+    }
+    compact_params = {key: value
+                      for key, value in params.iteritems()
+                      if value is not None}
     context = {
+        'params': compact_params,
         'chart_types': [
             ('artist', 'Artists'),
             ('album', 'Albums'),
@@ -72,12 +85,6 @@ def index():
             ('last-12-months', 'Last 12 months'),
             ('overall', 'Overall'),
         ],
-        'username': request.args.get('username', ''),
-        'chart_type': request.args.get('chartType', 'artist'),
-        'number_of_positions': request.args.get('numberOfPositions', 20),
-        'timeframe': request.args.get('timeframe', 'last-3-months'),
-        'cumulative': request.args.get('cumulative', default=True,
-                                       type=lambda x: x != 'false'),
     }
     return render_template('index.html', **context)
 

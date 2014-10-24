@@ -155,3 +155,6 @@ $ ->
 
   $('#settings-block .navbar-toggle').click ->
     $('#settings-block').toggleClass('collapsed')
+
+  unless _.isEmpty($GET_PARAMS)
+    $('#submit').click()
