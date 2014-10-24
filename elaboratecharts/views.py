@@ -50,7 +50,36 @@ app = Blueprint('elaboratechart', __name__)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    context = {
+        'chart_types': [
+            ('artist', 'Artists'),
+            ('album', 'Albums'),
+            ('track', 'Tracks'),
+        ],
+        'numbers_of_positions': [
+            (5, 5),
+            (10, 10),
+            (15, 15),
+            (20, 20),
+            (30, 30),
+            (50, 50),
+        ],
+        'timeframes': [
+            ('last-7-days', 'Last 7 days'),
+            ('last-month', 'Last month'),
+            ('last-3-months', 'Last 3 months'),
+            ('last-6-months', 'Last 6 months'),
+            ('last-12-months', 'Last 12 months'),
+            ('overall', 'Overall'),
+        ],
+        'username': request.args.get('username', ''),
+        'chart_type': request.args.get('chartType', 'artist'),
+        'number_of_positions': request.args.get('numberOfPositions', 20),
+        'timeframe': request.args.get('timeframe', 'last-3-months'),
+        'cumulative': request.args.get('cumulative', default=True,
+                                       type=lambda x: x != 'false'),
+    }
+    return render_template('index.html', **context)
 
 
 @app.route('/weekly-chart')
