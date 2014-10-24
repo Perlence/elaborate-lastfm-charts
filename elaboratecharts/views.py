@@ -141,9 +141,14 @@ def get_registered():
 
     registered = dbuser.get_registered()
     if registered is None:
-        registered = arrow.get(
-            pool.spawn(api.user.get_info, username)
-                .get()['registered']['unixtime'])
+        try:
+            registered = arrow.get(
+                pool.spawn(api.user.get_info, username)
+                    .get()['registered']['unixtime'])
+        except LastfmError as err:
+            response = jsonify(error=err.message)
+            response.status_code = 502
+            return response
         spawn(dbuser.set_registered, registered)
 
     return jsonify(registered=registered.timestamp)

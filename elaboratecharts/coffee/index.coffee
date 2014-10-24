@@ -105,7 +105,8 @@ getJSON = (url, params) ->
   new Promise (resolve, reject) ->
     $.getJSON(url, params)
     .done (result) -> resolve(result)
-    .fail (jqxhr, textStatus, error) -> reject(error)
+    .fail (jqxhr, textStatus, error) ->
+      reject(jqxhr)
 
 
 $ ->
@@ -120,6 +121,7 @@ $ ->
 
     getJSON($SCRIPT_ROOT + '/info', {username})
     .then (info) ->
+      $('#username').parent().removeClass('has-error')
       toDate = moment.utc()
       fromDate = switch timeframe
         when 'last-7-days'    then toDate.clone().subtract(1,  'week' )
@@ -148,9 +150,13 @@ $ ->
       drawChart(charts.reverse(), numberOfPositions, cumulative)
       ladda.stop()
       $('#settings-block').addClass('collapsed')
-    .catch ->
+    .catch (err) ->
       # Failed to get user info or there were server-side errors while getting
       # weekly charts.
+      message = err.responseJSON?.error ? ''
+      if message.indexOf('error code 6') > -1
+        # No user with that name was found.
+        $('#username').parent().addClass('has-error')
       ladda.stop()
 
   $('#settings-block .navbar-toggle').click ->
