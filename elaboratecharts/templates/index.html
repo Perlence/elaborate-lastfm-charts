@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
 
+{% block title %}
+  Elaborate Last.fm Charts
+{% endblock %}
+
 {% block head %}
   {{ super() }}
   <link href="{{ url_for('static', filename='gfx/favicon.ico') }}" rel="shortcut icon">

@@ -41,7 +41,7 @@ To install the application you need Python 2.7 and a stable node.js.
     gem install sass
     ```
 
--   Install front-end dependencies using bower:
+-   Install front-end dependencies using Bower:
 
     ```bash
     bower install
