@@ -1,9 +1,17 @@
 {% extends 'base.html' %}
 
+{% block head %}
+  {{ super() }}
+  <link href="{{ url_for('static', filename='gfx/favicon.ico') }}" rel="shortcut icon">
+{% endblock %}
+
 {% block body %}
 <div id="settings-block">
   <nav class="navbar navbar-inverse">
-    <span class="navbar-brand">Elaborate Last.fm Charts</span>
+    <span class="navbar-brand">
+      <img class="img-circle" height="34" alt="Elaborate Last.fm Charts" src="{{ url_for('static', filename='gfx/brand.png') }}" />
+      Elaborate Last.fm Charts
+    </span>
     <button type="button" class="navbar-toggle">
       <span class="sr-only">Toggle navigation</span>
       <span class="icon-bar"></span>
