@@ -11,7 +11,7 @@
     "last.fm",
     "python",
     "flask",
-    "mongokit",
+    "redis",
     "gevent"
   ],
   "license": "BSD",
