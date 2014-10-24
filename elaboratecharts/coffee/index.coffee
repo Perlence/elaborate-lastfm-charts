@@ -121,7 +121,9 @@ $ ->
 
     getJSON($SCRIPT_ROOT + '/info', {username})
     .then (info) ->
-      $('#username').parent().removeClass('has-error')
+      $username = $('#username')
+      $username.parent().removeClass('has-error').removeClass('has-feedback')
+      $username.next('i.form-control-feedback').addClass('hidden')
       toDate = moment.utc()
       fromDate = switch timeframe
         when 'last-7-days'    then toDate.clone().subtract(1,  'week' )
@@ -156,7 +158,9 @@ $ ->
       message = err.responseJSON?.error ? ''
       if message.indexOf('error code 6') > -1
         # No user with that name was found.
-        $('#username').parent().addClass('has-error')
+        $username = $('#username')
+        $username.parent().addClass('has-error').addClass('has-feedback')
+        $username.next('i.form-control-feedback').removeClass('hidden')
       ladda.stop()
 
   $('#settings-block .navbar-toggle').click ->

@@ -25,11 +25,12 @@
   </nav>
   <form role="form">
     <div class="form-group">
-      <label for="username">Username</label>
+      <label class="control-label" for="username">Username</label>
       <input id="username" type="text" class="form-control" name="username" placeholder="Enter your username" value="{{ params.username }}" />
+      <i class="glyphicon glyphicon-remove form-control-feedback hidden"></i>
     </div>
     <div class="form-group">
-      <label for="chart-type">Chart type</label>
+      <label class="control-label" for="chart-type">Chart type</label>
       <select id="chart-type" class="form-control" name="chart-type">
       {%- for value, text in chart_types %}
         <option value="{{ value }}"{{ ' selected' if params.chart_type|d('artist') == value }}>{{ text }}</option>
@@ -37,7 +38,7 @@
       </select>
     </div>
     <div class="form-group">
-      <label for="number-of-positions">Number of positions</label>
+      <label class="control-label" for="number-of-positions">Number of positions</label>
       <select id="number-of-positions" class="form-control" name="number-of-positions">
       {%- for value, text in numbers_of_positions %}
           <option value="{{ value }}"{{ ' selected' if params.number_of_positions|d(20) == value }}>{{ text }}</option>
@@ -45,7 +46,7 @@
       </select>
     </div>
     <div class="form-group">
-      <label for="timeframe">Timeframe</label>
+      <label class="control-label" for="timeframe">Timeframe</label>
       <select id="timeframe" class="form-control" name="timeframe">
       {%- for value, text in timeframes %}
         <option value="{{ value }}"{{ ' selected' if params.timeframe|d('last-3-months') == value }}>{{ text }}</option>
