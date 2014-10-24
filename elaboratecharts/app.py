@@ -30,6 +30,7 @@ js_bundle = Bundle(
     'ladda-bootstrap/dist/ladda.js',
     'bluebird/js/browser/bluebird.js',
     'lodash/dist/lodash.js',
+    'history.js/scripts/bundled-uncompressed/html4+html5/jquery.history.js',
     Bundle(
         'index.coffee',
         filters=['coffeescript']),

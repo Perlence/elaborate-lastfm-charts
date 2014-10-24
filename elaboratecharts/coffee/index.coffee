@@ -111,13 +111,31 @@ getJSON = (url, params) ->
 
 $ ->
   $('#submit').click ->
-    ladda = Ladda.create(this)
+    params =
+      'username': $('#username').val().trim()
+      'chart-type': $('#chart-type option:selected').val()
+      'number-of-positions': $('#number-of-positions option:selected').val()
+      'timeframe': $('#timeframe option:selected').val()
+      'cumulative': $('#cumulative').is(':checked')
+    History.pushState(params, 'Elaborate Last.fm charts',
+                      '?' + $.param(params))
+
+  History.Adapter.bind window, 'statechange', ->
+    ladda = Ladda.create($('#submit')[0])
     ladda.start()
-    username = $('#username').val().trim()
-    chartType = $('#chart-type option:selected').val()
-    numberOfPositions = $('#number-of-positions option:selected').val()
-    timeframe = $('#timeframe option:selected').val()
-    cumulative = $('#cumulative').is(':checked')
+
+    state = History.getState()
+    params = state.data
+    username = params['username']
+    chartType = params['chart-type'] ? 'artist'
+    numberOfPositions = params['number-of-positions'] ? 20
+    timeframe = params['timeframe'] ? 'last-3-months'
+    cumulative = params['cumulative'] ? true
+    $('#username').val(username)
+    $('#chart-type').val(chartType)
+    $('#number-of-positions').val(numberOfPositions)
+    $('#timeframe').val(timeframe)
+    $('#cumulative').prop('checked', cumulative)
 
     getJSON($SCRIPT_ROOT + '/info', {username})
     .then (info) ->
