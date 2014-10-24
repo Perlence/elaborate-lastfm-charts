@@ -1,7 +1,7 @@
-@import "_variables";
+@import "bootstrap/variables";
 $icon-font-path: "/static/fonts/";
 
-@import "bootstrap";
+@import "_bootstrap";
 @import "ladda";
 
 html, body {
