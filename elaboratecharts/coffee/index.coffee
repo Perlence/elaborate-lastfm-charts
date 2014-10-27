@@ -27,12 +27,13 @@ prepareChart = ->
           <span style=\"font-size: 10px\">\
             #{ Highcharts.dateFormat('%A, %b %e, %Y', @x) }\
           </span>"""
-        $.each @points.reverse(), ->
-          if @y > 0
+        points = _.sortBy(@points, (point) -> point.y)
+        for point in points.reverse()
+          if point.y > 0
             s += """\
               <br/>\
-              <span style=\"color: #{ @series.color };\">●</span> \
-              #{ @series.name }: <b>#{ @y }</b>"""
+              <span style=\"color: #{ point.series.color };\">●</span> \
+              #{ point.series.name }: <b>#{ point.y }</b>"""
         return s
     plotOptions:
       area:
