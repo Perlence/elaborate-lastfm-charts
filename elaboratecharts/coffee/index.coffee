@@ -1,3 +1,13 @@
+origSeriesOnMouseOver = Highcharts.Series::onMouseOver
+
+
+Highcharts.Series::onMouseOver = (e) ->
+  origSeriesOnMouseOver.call(this)
+  tooltip = @chart.tooltip
+  if tooltip and tooltip.shared and not @noSharedTooltip
+    tooltip.refresh(@chart.hoverPoints, e)
+
+
 prepareChart = ->
   $chart = $('#chart')
   $chart.highcharts 'StockChart',
@@ -21,7 +31,7 @@ prepareChart = ->
     rangeSelector:
       enabled: false
     tooltip:
-      # shared: false
+      # shared: true
       formatter: ->
         s = """\
           <span style=\"font-size: 10px\">\
@@ -32,8 +42,11 @@ prepareChart = ->
           if point.y > 0
             s += """\
               <br/>\
-              <span style=\"color: #{ point.series.color };\">●</span> \
-              #{ point.series.name }: <b>#{ point.y }</b>"""
+              <span style=\"color: #{ point.series.color };\">●</span>"""
+            if point.series.state == 'hover'
+              s += "<b> #{ point.series.name }</b>: <b>#{ point.y }</b>"
+            else
+              s += " #{ point.series.name }: <b>#{ point.y }</b>"
         return s
     plotOptions:
       area:
