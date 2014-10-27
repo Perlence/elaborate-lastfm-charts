@@ -1,15 +1,11 @@
-prepareChart = (timestamps) ->
+prepareChart = ->
   $chart = $('#chart')
-  $chart.highcharts
+  $chart.highcharts 'StockChart',
     chart:
       type: 'area'
-      zoomType: 'x'
-      panning: true,
-      panKey: 'shift'
     title:
       text: null
     xAxis:
-      categories: timestamps.map (ts) -> moment.unix(ts).format('YYYY-MM-DD')
       tickmarkPlacement: 'on'
       title:
         enabled: false
@@ -20,6 +16,24 @@ prepareChart = (timestamps) ->
         text: 'Percent'
     legend:
       enabled: false
+    navigator:
+      enabled: false
+    rangeSelector:
+      enabled: false
+    tooltip:
+      # shared: false
+      formatter: ->
+        s = """\
+          <span style=\"font-size: 10px\">\
+            #{ Highcharts.dateFormat('%A, %b %e, %Y', @x) }\
+          </span>"""
+        $.each @points.reverse(), ->
+          if @y > 0
+            s += """\
+              <br/>\
+              <span style=\"color: #{ @series.color };\">●</span> \
+              #{ @series.name }: <b>#{ @y }</b>"""
+        return s
     plotOptions:
       area:
         stacking: 'percent'
@@ -82,11 +96,12 @@ drawChart = (charts, numberOfPositions, cumulative) ->
     for item, count of topitems
       items[item][timestamp] = count
 
-  chart = prepareChart(timestamps)
+  chart = prepareChart()
   for item, weeks of items
     series =
       name: item
-      data: (weeks[timestamp] ? 0 for timestamp in timestamps)
+      data:
+        ([timestamp * 1000, weeks[timestamp] ? 0] for timestamp in timestamps)
     chart.addSeries(series, false)
   chart.redraw()
 
