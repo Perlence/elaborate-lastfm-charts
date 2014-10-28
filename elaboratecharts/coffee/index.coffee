@@ -1,11 +1,13 @@
-origSeriesOnMouseOver = Highcharts.Series::onMouseOver
+origPointOnMouseOver = Highcharts.Point::onMouseOver
 
 
-Highcharts.Series::onMouseOver = (e) ->
-  origSeriesOnMouseOver.call(this)
-  tooltip = @chart.tooltip
-  if tooltip and tooltip.shared and not @noSharedTooltip
-    tooltip.refresh(@chart.hoverPoints, e)
+Highcharts.Point::onMouseOver = (e) ->
+  origPointOnMouseOver.call(this)
+  chart = @series.chart
+  tooltip = chart.tooltip
+  if tooltip and tooltip.shared
+    if chart.hoverPoints?
+      tooltip.refresh(chart.hoverPoints, e)
 
 
 prepareChart = ->
@@ -30,8 +32,9 @@ prepareChart = ->
       enabled: false
     rangeSelector:
       enabled: false
+    scrollbar:
+      enabled: false
     tooltip:
-      # shared: true
       formatter: ->
         s = """\
           <span style=\"font-size: 10px\">\
