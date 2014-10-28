@@ -10,6 +10,13 @@ Highcharts.Point::onMouseOver = (e) ->
       tooltip.refresh(chart.hoverPoints, e)
 
 
+zfill = (num, size) ->
+  s = num + ''
+  while s.length < size
+    s = '0' + s
+  return s
+
+
 prepareChart = ->
   $chart = $('#chart')
   $chart.highcharts 'StockChart',
@@ -41,15 +48,17 @@ prepareChart = ->
             #{ Highcharts.dateFormat('%A, %b %e, %Y', @x) }\
           </span>"""
         points = _.sortBy(@points, (point) -> point.y)
-        for point in points.reverse()
+        for point, index in points.reverse()
+          strIndex = zfill(index + 1, 2)
           if point.y > 0
             s += """\
               <br/>\
-              <span style=\"color: #{ point.series.color };\">●</span>"""
+              #{ strIndex }\
+              <span style=\"color: #{ point.series.color };\"> ● </span>"""
             if point.series.state == 'hover'
-              s += "<b> #{ point.series.name }</b>: <b>#{ point.y }</b>"
+              s += "<b>#{ point.series.name }</b>: <b>#{ point.y }</b>"
             else
-              s += " #{ point.series.name }: <b>#{ point.y }</b>"
+              s += "#{ point.series.name }: <b>#{ point.y }</b>"
         return s
     plotOptions:
       area:
