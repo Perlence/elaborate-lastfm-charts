@@ -22,26 +22,33 @@ env.load_path = [
     path.join(path.dirname(__file__), 'bower_components'),
 ]
 js_bundle = Bundle(
-    'jquery/dist/jquery.js',
-    'bootstrap-sass-official/assets/javascripts/bootstrap.js',
-    'moment/min/moment-with-locales.js',
-    'highcharts-release/highcharts.js',
-    'ladda-bootstrap/dist/spin.js',
-    'ladda-bootstrap/dist/ladda.js',
-    'bluebird/js/browser/bluebird.js',
-    'lodash/dist/lodash.js',
-    'history.js/scripts/bundled-uncompressed/html4+html5/jquery.history.js',
+    Bundle(
+        'jquery/dist/jquery.js',
+        'bootstrap-sass-official/assets/javascripts/bootstrap.js',
+        'moment/min/moment-with-locales.js',
+        'highcharts-release/highcharts.js',
+        'ladda-bootstrap/dist/spin.js',
+        'ladda-bootstrap/dist/ladda.js',
+        'bluebird/js/browser/bluebird.js',
+        'lodash/dist/lodash.js',
+        ('history.js/scripts/bundled-uncompressed/html4+html5/'
+         'jquery.history.js'),
+        output='js_requirements.js'),
     Bundle(
         'index.coffee',
-        filters=['coffeescript']),
-    output='js_all.js')
+        filters=['coffeescript'],
+        output='js_index.js'))
 css_bundle = Bundle(
     'all.scss',
     filters=['scss'],
     output='css_all.css')
 env.config['sass_load_paths'] = [
-    path.join(path.dirname(__file__), 'bower_components/bootstrap-sass-official/assets/stylesheets/'),
-    path.join(path.dirname(__file__), 'bower_components/ladda-bootstrap/css/')
+    path.join(
+        path.dirname(__file__),
+        'bower_components/bootstrap-sass-official/assets/stylesheets/'),
+    path.join(
+        path.dirname(__file__),
+        'bower_components/ladda-bootstrap/css/')
 ]
 env.register('js_all', js_bundle)
 env.register('css_all', css_bundle)
@@ -51,8 +58,9 @@ app.register_blueprint(elaboratecharts)
 
 @app.route('/static/fonts/<path:fontname>')
 def static_fonts(fontname):
-    directory = path.join(path.dirname(__file__),
-                          'bower_components/bootstrap-sass-official/assets/fonts/bootstrap')
+    directory = path.join(
+        path.dirname(__file__),
+        'bower_components/bootstrap-sass-official/assets/fonts/bootstrap')
     return send_from_directory(directory, fontname)
 
 
