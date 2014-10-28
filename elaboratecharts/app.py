@@ -65,8 +65,7 @@ def static_fonts(fontname):
 
 
 def start(debug=False):
-    import os
-    if debug or 'DEBUG' in os.environ:
+    if debug:
         host = '127.0.0.1'
         debug = True
     else:
