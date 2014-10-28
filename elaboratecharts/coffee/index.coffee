@@ -1,15 +1,23 @@
-prepareChart = (timestamps) ->
+origPointOnMouseOver = Highcharts.Point::onMouseOver
+
+
+Highcharts.Point::onMouseOver = (e) ->
+  origPointOnMouseOver.call(this)
+  chart = @series.chart
+  tooltip = chart.tooltip
+  if tooltip and tooltip.shared
+    if chart.hoverPoints?
+      tooltip.refresh(chart.hoverPoints, e)
+
+
+prepareChart = ->
   $chart = $('#chart')
-  $chart.highcharts
+  $chart.highcharts 'StockChart',
     chart:
       type: 'area'
-      zoomType: 'x'
-      panning: true,
-      panKey: 'shift'
     title:
       text: null
     xAxis:
-      categories: timestamps.map (ts) -> moment.unix(ts).format('YYYY-MM-DD')
       tickmarkPlacement: 'on'
       title:
         enabled: false
@@ -20,6 +28,29 @@ prepareChart = (timestamps) ->
         text: 'Percent'
     legend:
       enabled: false
+    navigator:
+      enabled: false
+    rangeSelector:
+      enabled: false
+    scrollbar:
+      enabled: false
+    tooltip:
+      formatter: ->
+        s = """\
+          <span style=\"font-size: 10px\">\
+            #{ Highcharts.dateFormat('%A, %b %e, %Y', @x) }\
+          </span>"""
+        points = _.sortBy(@points, (point) -> point.y)
+        for point in points.reverse()
+          if point.y > 0
+            s += """\
+              <br/>\
+              <span style=\"color: #{ point.series.color };\">●</span>"""
+            if point.series.state == 'hover'
+              s += "<b> #{ point.series.name }</b>: <b>#{ point.y }</b>"
+            else
+              s += " #{ point.series.name }: <b>#{ point.y }</b>"
+        return s
     plotOptions:
       area:
         stacking: 'percent'
@@ -82,11 +113,12 @@ drawChart = (charts, numberOfPositions, cumulative) ->
     for item, count of topitems
       items[item][timestamp] = count
 
-  chart = prepareChart(timestamps)
+  chart = prepareChart()
   for item, weeks of items
     series =
       name: item
-      data: (weeks[timestamp] ? 0 for timestamp in timestamps)
+      data:
+        ([timestamp * 1000, weeks[timestamp] ? 0] for timestamp in timestamps)
     chart.addSeries(series, false)
   chart.redraw()
 

@@ -26,7 +26,7 @@ js_bundle = Bundle(
         'jquery/dist/jquery.js',
         'bootstrap-sass-official/assets/javascripts/bootstrap.js',
         'moment/min/moment-with-locales.js',
-        'highcharts-release/highcharts.js',
+        'highstock-release/highstock.src.js',
         'ladda-bootstrap/dist/spin.js',
         'ladda-bootstrap/dist/ladda.js',
         'bluebird/js/browser/bluebird.js',
