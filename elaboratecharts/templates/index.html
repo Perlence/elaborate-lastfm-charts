@@ -12,10 +12,10 @@
 {% block body %}
 <div id="settings-block">
   <nav class="navbar navbar-inverse">
-    <span class="navbar-brand">
+    <a class="navbar-brand" href="/">
       <img class="img-circle" height="34" alt="Elaborate Last.fm Charts" src="{{ url_for('static', filename='gfx/brand.png') }}" />
       Elaborate Last.fm Charts
-    </span>
+    </a>
     <button type="button" class="navbar-toggle">
       <span class="sr-only">Toggle navigation</span>
       <span class="icon-bar"></span>
@@ -23,17 +23,17 @@
       <span class="icon-bar"></span>
     </button>
   </nav>
-  <form role="form">
+  <form role="form" id="form">
     <div class="form-group">
       <label class="control-label" for="username">Username</label>
-      <input id="username" type="text" class="form-control" name="username" placeholder="Enter your username" value="{{ params.username }}" />
+      <input id="username" type="text" class="form-control" name="username" placeholder="Enter your username" />
       <i class="glyphicon glyphicon-remove form-control-feedback hidden"></i>
     </div>
     <div class="form-group">
       <label class="control-label" for="chart-type">Chart type</label>
       <select id="chart-type" class="form-control" name="chart-type">
       {%- for value, text in chart_types %}
-        <option value="{{ value }}"{{ ' selected' if params.chart_type|d('artist') == value }}>{{ text }}</option>
+        <option value="{{ value }}">{{ text }}</option>
       {%- endfor %}
       </select>
     </div>
@@ -41,7 +41,7 @@
       <label class="control-label" for="number-of-positions">Number of positions</label>
       <select id="number-of-positions" class="form-control" name="number-of-positions">
       {%- for value, text in numbers_of_positions %}
-          <option value="{{ value }}"{{ ' selected' if params.number_of_positions|d(20) == value }}>{{ text }}</option>
+          <option value="{{ value }}">{{ text }}</option>
       {%- endfor %}
       </select>
     </div>
@@ -49,16 +49,16 @@
       <label class="control-label" for="timeframe">Timeframe</label>
       <select id="timeframe" class="form-control" name="timeframe">
       {%- for value, text in timeframes %}
-        <option value="{{ value }}"{{ ' selected' if params.timeframe|d('last-3-months') == value }}>{{ text }}</option>
+        <option value="{{ value }}">{{ text }}</option>
       {%- endfor %}
       </select>
     </div>
     <div class="checkbox text-left">
       <label>
-        <input type="checkbox" id="cumulative"{{ ' checked' if params.cumulative|d(True) }}> Cumulative
+        <input type="checkbox" id="cumulative"> Cumulative
       </label>
     </div>
-    <button class="btn btn-primary btn-block ladda-button" type="button" id="submit" data-style="slide-left">Submit</button>
+    <button class="btn btn-primary btn-block ladda-button" type="submit" id="submit" data-style="slide-left">Submit</button>
   </form>
   <div class="row footer">
     Brought to you by <a href="https://twitter.com/perlencellent" target="_blank">@Perlencellent</a> and <a href="https://twitter.com/sacret19" target="_blank">@Sacret19</a>.<br />
@@ -71,5 +71,5 @@
 
 {% block tail_js %}
   {{ super() }}
-  <script type="text/javascript">$GET_PARAMS = {{ params|tojson }};</script>
+  <script type="text/javascript">$GET_PARAMS = {{ request.args|tojson }};</script>
 {% endblock %}

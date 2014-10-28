@@ -50,20 +50,7 @@ app = Blueprint('elaboratechart', __name__)
 
 @app.route('/')
 def index():
-    params = {
-        'username': request.args.get('username'),
-        'chart_type': request.args.get('chart-type'),
-        'number_of_positions': request.args.get('number-of-positions',
-                                                type=int),
-        'timeframe': request.args.get('timeframe'),
-        'cumulative': request.args.get('cumulative',
-                                       type=lambda x: x != 'false'),
-    }
-    compact_params = {key: value
-                      for key, value in params.iteritems()
-                      if value is not None}
     context = {
-        'params': compact_params,
         'chart_types': [
             ('artist', 'Artists'),
             ('album', 'Albums'),

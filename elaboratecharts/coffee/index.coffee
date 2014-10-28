@@ -109,80 +109,101 @@ getJSON = (url, params) ->
       reject(jqxhr)
 
 
+setDefaults = (params) ->
+  username = params['username']
+  chartType = params['chart-type'] ? 'artist'
+  numberOfPositions = params['number-of-positions'] ? '20'
+  timeframe = params['timeframe'] ? 'last-3-months'
+  cumulative = (params['cumulative'] ? 'true') == 'true'
+  $('#username').val(username)
+  $('#chart-type').val(chartType)
+  $('#number-of-positions').val(numberOfPositions)
+  $('#timeframe').val(timeframe)
+  $('#cumulative').prop('checked', cumulative)
+  return {username, chartType, numberOfPositions, timeframe, cumulative}
+
+
+submit = ->
+  ladda = Ladda.create($('#submit')[0])
+  ladda.start()
+
+  state = History.getState()
+  params = setDefaults(state.data)
+
+  getJSON($SCRIPT_ROOT + '/info', {username: params.username})
+  .then (info) ->
+    $username = $('#username')
+    $username.parent().removeClass('has-error').removeClass('has-feedback')
+    $username.next('i.form-control-feedback').addClass('hidden')
+    toDate = moment.utc()
+    fromDate = switch params.timeframe
+      when 'last-7-days'    then toDate.clone().subtract(1,  'week' )
+      when 'last-month'     then toDate.clone().subtract(1,  'month')
+      when 'last-3-months'  then toDate.clone().subtract(3,  'month')
+      when 'last-6-months'  then toDate.clone().subtract(6,  'month')
+      when 'last-12-months' then toDate.clone().subtract(12, 'month')
+      when 'overall'        then moment.utc(info.registered * 1000)
+    fromDate.startOf('week').add(12, 'hours')
+
+    ranges = spanRange(fromDate, toDate, 1, 'week').reverse()
+    progress = 0
+    Promise.map ranges, ([fromDate, toDate]) ->
+      getJSON(
+        $SCRIPT_ROOT + '/weekly-chart',
+        username: params.username,
+        chartType: params.chartType,
+        fromDate: fromDate,
+        toDate: toDate)
+      .then (response) ->
+        progress += 1
+        ladda.setProgress(progress / ranges.length)
+        # if response.error?
+        #   # Put error handling here
+        response
+      .catch ->
+        # Failed to get weekly charts.
+        ladda.stop()
+  .then (charts) ->
+    drawChart(charts.reverse(), params.numberOfPositions, params.cumulative)
+    ladda.stop()
+    $('#settings-block').addClass('collapsed')
+  .catch (err) ->
+    # Failed to get user info or there were server-side errors while getting
+    # weekly charts.
+    message = err.responseJSON?.error ? ''
+    if message.indexOf('error code 6') > -1
+      # No user with that name was found.
+      $username = $('#username')
+      $username.parent().addClass('has-error').addClass('has-feedback')
+      $username.next('i.form-control-feedback').removeClass('hidden')
+    ladda.stop()
+
+
 $ ->
-  $('#submit').click ->
+  setDefaults($GET_PARAMS)
+
+  $('#form').submit ->
+    oldParams = History.getState().data
     params =
       'username': $('#username').val().trim()
       'chart-type': $('#chart-type option:selected').val()
       'number-of-positions': $('#number-of-positions option:selected').val()
       'timeframe': $('#timeframe option:selected').val()
-      'cumulative': $('#cumulative').is(':checked')
-    History.pushState(params, 'Elaborate Last.fm charts',
-                      '?' + $.param(params))
+      'cumulative': $('#cumulative').is(':checked').toString()
+    # If state didn't change, submit data anyway.
+    if _.isEqual(params, oldParams)
+      submit()
+    else
+      History.pushState(params, 'Elaborate Last.fm charts',
+                        '?' + $.param(params))
+    # Prevent form from being submitted
+    return false
 
   History.Adapter.bind window, 'statechange', ->
-    ladda = Ladda.create($('#submit')[0])
-    ladda.start()
-
-    state = History.getState()
-    params = state.data
-    username = params['username']
-    chartType = params['chart-type'] ? 'artist'
-    numberOfPositions = params['number-of-positions'] ? 20
-    timeframe = params['timeframe'] ? 'last-3-months'
-    cumulative = params['cumulative'] ? true
-    $('#username').val(username)
-    $('#chart-type').val(chartType)
-    $('#number-of-positions').val(numberOfPositions)
-    $('#timeframe').val(timeframe)
-    $('#cumulative').prop('checked', cumulative)
-
-    getJSON($SCRIPT_ROOT + '/info', {username})
-    .then (info) ->
-      $username = $('#username')
-      $username.parent().removeClass('has-error').removeClass('has-feedback')
-      $username.next('i.form-control-feedback').addClass('hidden')
-      toDate = moment.utc()
-      fromDate = switch timeframe
-        when 'last-7-days'    then toDate.clone().subtract(1,  'week' )
-        when 'last-month'     then toDate.clone().subtract(1,  'month')
-        when 'last-3-months'  then toDate.clone().subtract(3,  'month')
-        when 'last-6-months'  then toDate.clone().subtract(6,  'month')
-        when 'last-12-months' then toDate.clone().subtract(12, 'month')
-        when 'overall'        then moment.utc(info.registered * 1000)
-      fromDate.startOf('week').add(12, 'hours')
-
-      ranges = spanRange(fromDate, toDate, 1, 'week').reverse()
-      progress = 0
-      Promise.map ranges, ([fromDate, toDate]) ->
-        params = {username, chartType, fromDate, toDate}
-        getJSON($SCRIPT_ROOT + '/weekly-chart', params)
-        .then (response) ->
-          progress += 1
-          ladda.setProgress(progress / ranges.length)
-          # if response.error?
-          #   # Put error handling here
-          response
-        .catch ->
-          # Failed to get weekly charts.
-          ladda.stop()
-    .then (charts) ->
-      drawChart(charts.reverse(), numberOfPositions, cumulative)
-      ladda.stop()
-      $('#settings-block').addClass('collapsed')
-    .catch (err) ->
-      # Failed to get user info or there were server-side errors while getting
-      # weekly charts.
-      message = err.responseJSON?.error ? ''
-      if message.indexOf('error code 6') > -1
-        # No user with that name was found.
-        $username = $('#username')
-        $username.parent().addClass('has-error').addClass('has-feedback')
-        $username.next('i.form-control-feedback').removeClass('hidden')
-      ladda.stop()
+    submit()
 
   $('#settings-block .navbar-toggle').click ->
     $('#settings-block').toggleClass('collapsed')
 
-  unless _.isEmpty($GET_PARAMS)
-    $('#submit').click()
+  unless _.all(_.values($GET_PARAMS), _.isNull)
+    $('#form').submit()
