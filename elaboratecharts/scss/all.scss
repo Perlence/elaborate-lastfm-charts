@@ -8,10 +8,6 @@ html, body {
   height: 100%;
 }
 
-.row {
-  margin: 0;
-}
-
 #settings-block {
   @include make-xs-column(10);
   @include make-sm-column(6);
@@ -35,33 +31,25 @@ html, body {
       opacity: 0;
     }
   }
-
-  .navbar-brand {
-    @include transition(opacity 0.3s);
-  }
-
-  form {
-    flex: 1;
-    padding: 15px;
-    @include transition(opacity 0.3s);
-  }
-
-  .footer {
-    background: black;
-    padding: 5px 15px;
-    @include transition(opacity 0.3s);
-    width: 100%;
-    z-index: 9999;
-  }
 }
 
 .navbar {
   border: none;
   margin: 0;
+}
 
-  .navbar-toggle {
-    display: block !important;
-  }
+.navbar-brand {
+  @include transition(opacity 0.3s);
+}
+
+.navbar-toggle {
+  display: block !important;
+}
+
+form {
+  flex: 1;
+  padding: 15px;
+  @include transition(opacity 0.3s);
 }
 
 .btn {
@@ -86,6 +74,18 @@ html, body {
 
 #alert-message {
   margin-left: 0.5em;
+}
+
+.row {
+  margin: 0;
+}
+
+.footer {
+  background: black;
+  padding: 5px 15px;
+  @include transition(opacity 0.3s);
+  width: 100%;
+  z-index: 9999;
 }
 
 #chart {
