@@ -57,6 +57,30 @@ html, body {
   }
 }
 
+.btn {
+  margin-bottom: 20px;
+}
+
+.alert-inverse {
+  &.alert-warning {
+    $inverted-alert-warning-text: $alert-warning-bg;
+    $inverted-alert-warning-bg: $alert-warning-text;
+    $inverted-alert-warning-border: darken(adjust-hue($inverted-alert-warning-bg, -10), 5%);
+    @include alert-variant($inverted-alert-warning-bg, $inverted-alert-warning-border, $inverted-alert-warning-text);
+  }
+
+  &.alert-danger {
+    $inverted-alert-danger-text: $alert-danger-bg;
+    $inverted-alert-danger-bg: $alert-danger-text;
+    $inverted-alert-danger-border: darken(adjust-hue($inverted-alert-danger-bg, -10), 5%);
+    @include alert-variant($inverted-alert-danger-bg, $inverted-alert-danger-border, $inverted-alert-danger-text);
+  }
+}
+
+#alert-message {
+  margin-left: 0.5em;
+}
+
 #chart {
   height: 100%;
   padding-left: 72px;

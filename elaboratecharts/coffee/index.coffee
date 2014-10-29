@@ -43,18 +43,15 @@ prepareChart = ->
       enabled: false
     tooltip:
       formatter: ->
-        s = """\
-          <span style=\"font-size: 10px\">\
-            #{ Highcharts.dateFormat('%A, %b %e, %Y', @x) }\
-          </span>"""
+        s = "<span style=\"font-size: 10px\">
+               #{ Highcharts.dateFormat('%A, %b %e, %Y', @x) }
+             </span>"
         points = _.sortBy(@points, (point) -> point.y)
         for point, index in points.reverse()
           strIndex = zfill(index + 1, 2)
           if point.y > 0
-            s += """\
-              <br/>\
-              #{ strIndex }\
-              <span style=\"color: #{ point.series.color };\"> ● </span>"""
+            s += "<br/>#{ strIndex }
+                  <span style=\"color: #{ point.series.color };\"> ● </span>"
             if point.series.state == 'hover'
               s += "<b>#{ point.series.name }</b>: <b>#{ point.y }</b>"
             else
@@ -132,6 +129,16 @@ drawChart = (charts, numberOfPositions, cumulative) ->
   chart.redraw()
 
 
+hideAlert = ->
+  $('#alert').addClass('hidden')
+
+
+showAlert = (type, reason, message) ->
+  $('#alert-reason').text(reason)
+  $('#alert-message').text(message)
+  $('#alert').addClass('alert-' + type).removeClass('hidden')
+
+
 spanRange = (start, end, args...) ->
   result = []
   s = start.clone()
@@ -167,6 +174,7 @@ setDefaults = (params) ->
 submit = ->
   ladda = Ladda.create($('#submit')[0])
   ladda.start()
+  hideAlert()
 
   state = History.getState()
   params = setDefaults(state.data)
@@ -198,16 +206,25 @@ submit = ->
       .then (response) ->
         progress += 1
         ladda.setProgress(progress / ranges.length)
-        # if response.error?
-        #   # Put error handling here
         response
       .catch ->
-        # Failed to get weekly charts.
+        showAlert('danger', 'Server Error', 'Failed to get weekly charts.')
         ladda.stop()
   .then (charts) ->
+    failedWeeksArray = []
+    for {toDate, error} in charts
+      if error?
+        failedWeeksArray.push(
+          moment.utc(toDate * 1000).format('MMM D, YYYY'))
+    if failedWeeksArray.length > 0
+      failedWeeks = failedWeeksArray.join(', ')
+      showAlert('warning', 'Last.fm Error',
+                "Weeks ending on #{ failedWeeks } failed to load.")
+
     drawChart(charts.reverse(), params.numberOfPositions, params.cumulative)
     ladda.stop()
-    $('#settings-block').addClass('collapsed')
+    unless failedWeeksArray.length > 0
+      $('#settings-block').addClass('collapsed')
   .catch (err) ->
     # Failed to get user info or there were server-side errors while getting
     # weekly charts.
@@ -217,6 +234,8 @@ submit = ->
       $username = $('#username')
       $username.parent().addClass('has-error').addClass('has-feedback')
       $username.next('i.form-control-feedback').removeClass('hidden')
+    else
+      showAlert('danger', 'Server Error', 'Failed to get weekly charts.')
     ladda.stop()
 
 
