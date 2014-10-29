@@ -246,6 +246,7 @@ submit = ->
       $username = $('#username')
       $username.parent().addClass('has-error').addClass('has-feedback')
       $username.next('i.form-control-feedback').removeClass('hidden')
+      showAlert('danger', 'Last.fm Error', 'No such user exists.')
     else
       showAlert('danger', 'Server Error', 'Failed to get weekly charts.')
     ladda.stop()
