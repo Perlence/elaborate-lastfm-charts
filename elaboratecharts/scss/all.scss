@@ -16,42 +16,49 @@ html, body {
   @include make-xs-column(10);
   @include make-sm-column(6);
   @include make-md-column(4);
-  @include transition(width 0.3s);
 
   background: $navbar-inverse-bg;
   color: $navbar-inverse-color;
   display: flex;
   flex-direction: column;
+  left: 0;
   min-height: 100vh;
   padding: 0;
   position: absolute;
+  @include transition(left 0.3s);
   z-index: 9999;
-  form {
-    @include transition(opacity 0.3s);
-    flex: 1;
-    padding: 15px;
-  }
-  .footer {
-    @include transition(opacity 0.3s);
-    background: black;
-    padding: 5px 15px;
-    width: 100%;
-    z-index: 9999;
-  }
+
   &.collapsed {
-    width: 72px;
-    .navbar-brand {
-      display: none;
-    }
-    form, .footer {
+    .navbar-brand,
+    form,
+    .footer {
       opacity: 0;
     }
+  }
+
+  .navbar-brand {
+    @include transition(opacity 0.3s);
+  }
+
+  form {
+    flex: 1;
+    padding: 15px;
+    @include transition(opacity 0.3s);
+  }
+
+  .footer {
+    background: black;
+    padding: 5px 15px;
+    @include transition(opacity 0.3s);
+    width: 100%;
+    z-index: 9999;
   }
 }
 
 .navbar {
   border: none;
   margin: 0;
+
   .navbar-toggle {
     display: block !important;
   }

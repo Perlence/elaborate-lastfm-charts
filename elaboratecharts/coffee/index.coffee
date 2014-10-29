@@ -129,6 +129,18 @@ drawChart = (charts, numberOfPositions, cumulative) ->
   chart.redraw()
 
 
+navbarCollapsedState = (action) ->
+  $settingsBlock = $('#settings-block')
+  $settingsBlock[action + 'Class']('collapsed')
+  $form = $('#form')
+  if $settingsBlock.hasClass('collapsed')
+    $form.css('pointer-events', 'none')
+    $settingsBlock.css('left', -$settingsBlock.width() + 72)
+  else
+    $form.css('pointer-events', 'auto')
+    $settingsBlock.css('left', 0)
+
+
 hideAlert = ->
   $('#alert').addClass('hidden')
 
@@ -224,7 +236,7 @@ submit = ->
     drawChart(charts.reverse(), params.numberOfPositions, params.cumulative)
     ladda.stop()
     unless failedWeeksArray.length > 0
-      $('#settings-block').addClass('collapsed')
+      navbarCollapsedState('add')
   .catch (err) ->
     # Failed to get user info or there were server-side errors while getting
     # weekly charts.
@@ -241,6 +253,11 @@ submit = ->
 
 $ ->
   setDefaults($GET_PARAMS)
+
+  $(window).resize ->
+    $settingsBlock = $('#settings-block')
+    if $settingsBlock.hasClass('collapsed')
+      $settingsBlock.css('left', -$settingsBlock.width() + 72)
 
   $('#form').submit ->
     oldParams = History.getState().data
@@ -263,7 +280,7 @@ $ ->
     submit()
 
   $('#settings-block .navbar-toggle').click ->
-    $('#settings-block').toggleClass('collapsed')
+    navbarCollapsedState('toggle')
 
   unless _.all(_.values($GET_PARAMS), _.isNull)
     $('#form').submit()
