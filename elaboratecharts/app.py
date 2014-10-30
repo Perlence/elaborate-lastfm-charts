@@ -40,7 +40,7 @@ js_bundle = Bundle(
         output='js_index.js'))
 css_bundle = Bundle(
     'all.scss',
-    filters=['scss'],
+    filters=['scss', 'autoprefixer'],
     output='css_all.css')
 env.config['sass_load_paths'] = [
     path.join(

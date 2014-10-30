@@ -6,7 +6,8 @@ Amazing Last.fm charts.
 Installation
 ------------
 
-To install the application you need Python 2.7 and a stable node.js.
+To install the application you need Python 2.7, Ruby, and a stable node.js.
+Also you need Redis to cache data from Last.fm.
 
 -   Clone the repository:
 
@@ -34,10 +35,10 @@ To install the application you need Python 2.7 and a stable node.js.
     python setup.py develop
     ```
 
--   Install Bower, CoffeeScript and Sass:
+-   Install Bower, CoffeeScript, Sass, and Autoprefixer:
 
     ```bash
-    npm install -g bower coffee-script
+    npm install -g bower coffee-script autoprefixer
     gem install sass
     ```
 
