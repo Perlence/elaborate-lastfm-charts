@@ -65,11 +65,9 @@ def static_fonts(fontname):
 
 
 def start(debug=False):
-    if debug:
-        host = '127.0.0.1'
-        debug = True
-    else:
-        host = '0.0.0.0'
+    host = config.HOST
+    if host is None:
+        host = '127.0.0.1' if debug else '0.0.0.0'
     app.debug = debug
     http_server = WSGIServer((host, 5000), app)
     http_server.serve_forever()
