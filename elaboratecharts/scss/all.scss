@@ -1,8 +1,9 @@
-@import "bootstrap/variables";
-$icon-font-path: "/static/fonts/";
-
 @import "_bootstrap";
 @import "ladda";
+
+@import "_variables";
+$fa-font-path: "/static/fonts";
+@import "font-awesome";
 
 html, body {
   height: 100%;
@@ -97,4 +98,8 @@ form {
 #chart {
   height: 100%;
   padding-left: 72px;
+}
+
+.form-control-feedback {
+  line-height: 32px !important;
 }

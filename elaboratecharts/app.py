@@ -48,7 +48,10 @@ env.config['sass_load_paths'] = [
         'bower_components/bootstrap-sass-official/assets/stylesheets/'),
     path.join(
         path.dirname(__file__),
-        'bower_components/ladda-bootstrap/css/')
+        'bower_components/ladda-bootstrap/css/'),
+    path.join(
+        path.dirname(__file__),
+        'bower_components/font-awesome/scss/'),
 ]
 env.register('js_all', js_bundle)
 env.register('css_all', css_bundle)
@@ -60,7 +63,7 @@ app.register_blueprint(elaboratecharts)
 def static_fonts(fontname):
     directory = path.join(
         path.dirname(__file__),
-        'bower_components/bootstrap-sass-official/assets/fonts/bootstrap')
+        'bower_components/font-awesome/fonts')
     return send_from_directory(directory, fontname)
 
 
