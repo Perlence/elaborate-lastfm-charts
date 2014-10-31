@@ -112,18 +112,15 @@ class PeriodicAccumalator
     return result
 
 
-drawChart = (charts, {timeframe, numberOfPositions, cumulative}) ->
+drawChart = (charts, {timeframe, numberOfPositions}) ->
   weeklyCharts = {}
   acc = new PeriodicAccumalator(charts[0].toDate,
                                 charts[charts.length - 1].toDate,
                                 timeframe: timeframe)
   for {toDate, chart} in charts
-    if cumulative
-      for item, count of chart ? {}
-        acc.add(toDate, item, count)
-      weeklyCharts[toDate] = acc.get(toDate)
-    else
-      weeklyCharts[toDate] = chart
+    for item, count of chart ? {}
+      acc.add(toDate, item, count)
+    weeklyCharts[toDate] = acc.get(toDate)
 
   # Limit the number of artists per week
   totalItems = {}
@@ -132,11 +129,7 @@ drawChart = (charts, {timeframe, numberOfPositions, cumulative}) ->
                                          reverse: true,
                                          limit: numberOfPositions)
     for item, count of weeklyCharts[timestamp]
-      totalItems[item] ?= 0
-      if cumulative
-        totalItems[item] = count
-      else
-        totalItems[item] += count
+      totalItems[item] = count
   totalItems = sortObject(totalItems, (__, value) -> value)
 
   items = {}
@@ -216,13 +209,11 @@ setDefaults = (params) ->
   chartType = params['chart-type'] ? 'artist'
   numberOfPositions = params['number-of-positions'] ? '20'
   timeframe = params['timeframe'] ? 'last-3-months'
-  cumulative = (params['cumulative'] ? 'true') == 'true'
   $('#username').val(username)
   $('#chart-type').val(chartType)
   $('#number-of-positions').val(numberOfPositions)
   $('#timeframe').val(timeframe)
-  $('#cumulative').prop('checked', cumulative)
-  return {username, chartType, numberOfPositions, timeframe, cumulative}
+  return {username, chartType, numberOfPositions, timeframe}
 
 
 submit = ->
@@ -310,7 +301,6 @@ $ ->
       'chart-type': $('#chart-type option:selected').val()
       'number-of-positions': $('#number-of-positions option:selected').val()
       'timeframe': $('#timeframe option:selected').val()
-      'cumulative': $('#cumulative').is(':checked').toString()
     # If state didn't change, submit data anyway.
     if _.isEqual(params, oldParams)
       submit()
