@@ -83,17 +83,45 @@ sortObject = (obj, func, options) ->
   return result
 
 
-drawChart = (charts, numberOfPositions, cumulative) ->
+class PeriodicAccumalator
+  constructor: (start, end, {timeframe}) ->
+    @start = moment.utc(start * 1000)
+    # @end = moment.utc(end * 1000).startOf('week').add(12, 'hours')
+    @end = moment.utc(end * 1000)
+    if timeframe != 'overall'
+      @timeframe = (@end.unix() - @start.unix()) // 2
+    else
+      @timeframe = @end.unix() - @start.unix()
+    @acc = {}
+
+  add: (timestamp, item, count) ->
+    @acc[timestamp] ?= {}
+    @acc[timestamp][item] ?= 0
+    @acc[timestamp][item] += count
+
+  get: (timestamp) ->
+    m = moment.utc(timestamp * 1000)
+    start = moment.max(@start,
+                       m.clone().subtract(@timeframe * 1000, 'milliseconds'))
+    result = {}
+    for timestamp, chart of @acc
+      if start <= moment.utc(timestamp * 1000) <= m
+        for item, count of chart
+          result[item] ?= 0
+          result[item] += count
+    return result
+
+
+drawChart = (charts, {timeframe, numberOfPositions, cumulative}) ->
   weeklyCharts = {}
-  acc = {}
+  acc = new PeriodicAccumalator(charts[0].toDate,
+                                charts[charts.length - 1].toDate,
+                                timeframe: timeframe)
   for {toDate, chart} in charts
-    weeklyCharts[toDate] = {}
     if cumulative
       for item, count of chart ? {}
-        acc[item] ?= 0
-        acc[item] += count
-      for item, count of acc
-        weeklyCharts[toDate][item] = count
+        acc.add(toDate, item, count)
+      weeklyCharts[toDate] = acc.get(toDate)
     else
       weeklyCharts[toDate] = chart
 
@@ -120,6 +148,10 @@ drawChart = (charts, numberOfPositions, cumulative) ->
       items[item][timestamp] = count
 
   chart = prepareChart()
+  # Limit timeframe to last half.
+  if timeframe != 'overall'
+    timestamps = timestamps[-timestamps.length // 2 .. -1]
+
   for item, weeks of items
     series =
       name: item
@@ -155,7 +187,7 @@ spanRange = (start, end, args...) ->
   result = []
   s = start.clone()
   while s < end
-    e = moment(Math.min(end, s.clone().add(1, 'week')))
+    e = moment.min(end, s.clone().add(1, 'week'))
     result.push([s.unix(), e.unix()])
     s.add(args...)
   return result
@@ -165,8 +197,7 @@ getJSON = (url, params) ->
   new Promise (resolve, reject) ->
     $.getJSON(url, params)
     .done (result) -> resolve(result)
-    .fail (jqxhr, textStatus, error) ->
-      reject(jqxhr)
+    .fail (jqxhr, textStatus, error) -> reject(jqxhr)
 
 
 setDefaults = (params) ->
@@ -198,11 +229,11 @@ submit = ->
     $username.next('i.form-control-feedback').addClass('hidden')
     toDate = moment.utc()
     fromDate = switch params.timeframe
-      when 'last-7-days'    then toDate.clone().subtract(1,  'week' )
-      when 'last-month'     then toDate.clone().subtract(1,  'month')
-      when 'last-3-months'  then toDate.clone().subtract(3,  'month')
-      when 'last-6-months'  then toDate.clone().subtract(6,  'month')
-      when 'last-12-months' then toDate.clone().subtract(12, 'month')
+      when 'last-7-days'    then toDate.clone().subtract(2,  'week' )
+      when 'last-month'     then toDate.clone().subtract(2,  'month')
+      when 'last-3-months'  then toDate.clone().subtract(6,  'month')
+      when 'last-6-months'  then toDate.clone().subtract(12, 'month')
+      when 'last-12-months' then toDate.clone().subtract(24, 'month')
       when 'overall'        then moment.utc(info.registered * 1000)
     fromDate.startOf('week').add(12, 'hours')
 
@@ -233,7 +264,7 @@ submit = ->
       showAlert('warning', 'Last.fm Error',
                 "Weeks ending on #{ failedWeeks } failed to load.")
 
-    drawChart(charts.reverse(), params.numberOfPositions, params.cumulative)
+    drawChart(charts.reverse(), params)
     ladda.stop()
     unless failedWeeksArray.length > 0
       navbarCollapsedState('add')
