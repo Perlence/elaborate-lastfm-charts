@@ -17,7 +17,7 @@ zfill = (num, size) ->
   return s
 
 
-prepareChart = ->
+prepareChart = (numberOfPositions) ->
   $chart = $('#chart')
   $chart.highcharts 'StockChart',
     chart:
@@ -47,8 +47,8 @@ prepareChart = ->
                #{ Highcharts.dateFormat('%A, %b %e, %Y', @x) }
              </span>"
         points = _.sortBy(@points, (point) -> point.y)
-        for point, index in points.reverse()
-          strIndex = zfill(index + 1, 2)
+        for point, index in points[-numberOfPositions..]
+          strIndex = zfill(numberOfPositions - index, 2)
           if point.y > 0
             s += "<br/>#{ strIndex }
                   <span style=\"color: #{ point.series.color };\"> ● </span>"
@@ -147,11 +147,11 @@ drawChart = (charts, {timeframe, numberOfPositions, cumulative}) ->
     for item, count of topitems
       items[item][timestamp] = count
 
-  chart = prepareChart()
   # Limit timeframe to last half.
   if timeframe != 'overall'
     timestamps = timestamps[-timestamps.length // 2 .. -1]
 
+  chart = prepareChart(numberOfPositions)
   for item, weeks of items
     series =
       name: item
