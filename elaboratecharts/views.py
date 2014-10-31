@@ -151,7 +151,7 @@ def get_weekly_chart(api, dbuser, chart_type, from_date, to_date):
     if not is_current_week:
         cached_chart = dbuser.get_weekly_chart(chart_type,
                                                from_date, to_date)
-        if cached_chart:
+        if cached_chart is not None:
             return cached_chart
 
         response = pool.spawn(get_weekly_smth_chart,
@@ -167,7 +167,7 @@ def get_weekly_chart(api, dbuser, chart_type, from_date, to_date):
 
     chart = response.get(chart_type)
     if chart is None:
-        return {}
+        result = {}
     elif isinstance(chart, list):
         result = {chart_key(chart_type, item): int(item['playcount'])
                   for item in chart}

@@ -46,9 +46,16 @@ class User(object):
                 chart_type=chart_type,
                 from_date=from_date.timestamp,
                 to_date=to_date.timestamp))
-        return dict(zip(charts.iterkeys(), map(int, charts.itervalues())))
+        if charts == {}:
+            return None
+        elif charts == {'__EMPTY__': '-1'}:
+            return {}
+        else:
+            return dict(zip(charts.iterkeys(), map(int, charts.itervalues())))
 
     def set_weekly_chart(self, chart_type, from_date, to_date, charts):
+        if not charts:
+            charts = {'__EMPTY__': '-1'}
         for artist, count in charts.iteritems():
             self.with_prefix(
                 'hset',
