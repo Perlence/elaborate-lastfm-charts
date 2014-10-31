@@ -175,6 +175,11 @@ navbarCollapsedState = (action) ->
 
 hideAlert = ->
   $('#alert').addClass('hidden')
+  $('#alert')
+    .removeClass('alert-success')
+    .removeClass('alert-info')
+    .removeClass('alert-warning')
+    .removeClass('alert-danger')
 
 
 showAlert = (type, reason, message) ->
@@ -197,7 +202,13 @@ getJSON = (url, params) ->
   new Promise (resolve, reject) ->
     $.getJSON(url, params)
     .done (result) -> resolve(result)
-    .fail (jqxhr, textStatus, error) -> reject(jqxhr)
+    .fail (jqxhr, textStatus, reason) ->
+      message = jqxhr.responseJSON?.error ? reason
+      error = new Error(message)
+      error.jqxhr = jqxhr
+      error.textStatus = textStatus
+      error.reason = reason
+      reject(error)
 
 
 setDefaults = (params) ->
@@ -247,10 +258,13 @@ submit = ->
         fromDate: fromDate,
         toDate: toDate)
       .then (response) ->
+        if response.error?
+          console.error(new Error(response.error))
         progress += 1
         ladda.setProgress(progress / ranges.length)
         response
-      .catch ->
+      .catch (err) ->
+        console.error(err)
         showAlert('danger', 'Server Error', 'Failed to get weekly charts.')
         ladda.stop()
   .then (charts) ->
@@ -269,10 +283,8 @@ submit = ->
     unless failedWeeksArray.length > 0
       navbarCollapsedState('add')
   .catch (err) ->
-    # Failed to get user info or there were server-side errors while getting
-    # weekly charts.
-    message = err.responseJSON?.error ? ''
-    if message.indexOf('error code 6') > -1
+    console.error(err)
+    if err.message.indexOf('error code 6') > -1
       # No user with that name was found.
       $username = $('#username')
       $username.parent().addClass('has-error').addClass('has-feedback')
