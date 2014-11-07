@@ -45,7 +45,9 @@ pool = ThrottlingPool(POOL_SIZE, LASTFM_INTERVAL)
 
 redis = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT,
               db=config.REDIS_DB, password=config.REDIS_PASSWORD)
-app = Blueprint('elaboratechart', __name__)
+app = elaboratecharts = Blueprint('elaboratecharts', __name__,
+                                  template_folder='templates',
+                                  static_folder='static')
 
 
 @app.route('/')

@@ -32,7 +32,7 @@
     {%- assets 'js_all' %}
     <script type="text/javascript" src="{{ ASSET_URL }}"></script>
     {%- endassets %}
-    <script type="text/javascript">$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
+    <script type="text/javascript">$SCRIPT_ROOT = {{ request.base_url.rstrip('/')|tojson|safe }};</script>
     {%- endblock %}
 
     {%- block tail %}
