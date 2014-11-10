@@ -3,7 +3,6 @@ from shutil import copytree, rmtree
 
 from flask.ext.assets import Environment, Bundle
 
-from . import assets
 from .views import elaboratecharts
 
 

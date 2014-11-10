@@ -1,2 +1,2 @@
-ipython==2.2.0
+ipython==2.3.0
 ipdb==0.8
