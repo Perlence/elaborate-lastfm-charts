@@ -1,0 +1,10 @@
+{
+    "HOST": null,
+    "SECRET_KEY": "",
+    "API_KEY": "",
+    "API_SECRET": "",
+    "REDIS_HOST": "localhost",
+    "REDIS_PORT": "6379",
+    "REDIS_DB": 0,
+    "REDIS_PASSWORD": null
+}

@@ -1,0 +1,150 @@
+@import "_bootstrap";
+@import "ladda";
+
+@import "_variables";
+$fa-font-path: "./fonts";
+@import "font-awesome";
+
+html, body {
+  height: 100%;
+}
+
+#settings-block {
+  @include make-xs-column(10);
+  @include make-sm-column(6);
+  @include make-md-column(4);
+
+  background: $navbar-inverse-bg;
+  color: $navbar-inverse-color;
+  display: flex;
+  flex-direction: column;
+  left: 0;
+  min-height: 100vh;
+  min-width: 330px;
+  padding: 0;
+  position: absolute;
+  transition: left 0.3s;
+  z-index: 9999;
+
+  &.collapsed {
+    .navbar-brand,
+    form,
+    .footer .info,
+    .footer .share-button-visible {
+      opacity: 0;
+    }
+    .github {
+      opacity: 1;
+    }
+  }
+}
+
+.navbar {
+  border: none;
+  margin: 0;
+}
+
+.navbar-brand {
+  transition: opacity 0.3s;
+  > img {
+    display: inline;
+  }
+}
+
+.navbar-toggle {
+  display: block !important;
+  margin-bottom: 0;
+  margin-top: 15px;
+}
+
+form {
+  flex: 1;
+  padding: 15px;
+  transition: opacity 0.3s;
+}
+
+.btn {
+  margin-bottom: 20px;
+}
+
+.alert-inverse {
+  &.alert-warning {
+    $inverted-alert-warning-text: $alert-warning-bg;
+    $inverted-alert-warning-bg: $alert-warning-text;
+    $inverted-alert-warning-border: darken(adjust-hue($inverted-alert-warning-bg, -10), 5%);
+    @include alert-variant($inverted-alert-warning-bg, $inverted-alert-warning-border, $inverted-alert-warning-text);
+  }
+
+  &.alert-danger {
+    $inverted-alert-danger-text: $alert-danger-bg;
+    $inverted-alert-danger-bg: $alert-danger-text;
+    $inverted-alert-danger-border: darken(adjust-hue($inverted-alert-danger-bg, -10), 5%);
+    @include alert-variant($inverted-alert-danger-bg, $inverted-alert-danger-border, $inverted-alert-danger-text);
+  }
+}
+
+#alert-message {
+  margin-left: 0.5em;
+}
+
+.row {
+  margin: 0;
+}
+
+.footer .info {
+  background: black;
+  padding: 5px 15px;
+  transition: opacity 0.3s;
+  width: 100%;
+  z-index: 9999;
+}
+
+.share-button-visible {
+  display: flex;
+  margin-left: 15px;
+  transition: opacity 0.3s;
+  .fb-share-button {
+    margin-right: 10px;
+  }
+}
+
+.github {
+  background: black;
+  bottom: 0;
+  opacity: 0;
+  position: absolute;
+  right: 0;
+  transition: opacity 0.3s;
+  width: 72px;
+  z-index: 9999;
+  a {
+    color: inherit;
+    &:hover {
+      color: darken($navbar-inverse-color, 15%);
+    }
+  }
+}
+
+.fa-github {
+  font-size: 40px;
+  padding: 5px;
+}
+
+.share-button {
+  background-color: $navbar-inverse-bg;
+  padding-bottom: 5px;
+  width: 72px;
+}
+
+.fb-share-button {
+  margin-bottom: 10px;
+}
+
+#chart {
+  height: 100%;
+  padding-left: 72px;
+}
+
+.form-control-feedback {
+  line-height: 32px !important;
+}

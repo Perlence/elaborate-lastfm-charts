@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block title %}
+  Elaborate Last.fm Charts
+{% endblock %}
+
+{% block head %}
+  {{ super() }}
+  <link href="{{ url_for('static', filename='gfx/favicon.ico') }}" rel="shortcut icon">
+{% endblock %}
+
+{% block body %}
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.0";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+<div id="settings-block">
+  <nav class="navbar navbar-inverse">
+    <a class="navbar-brand" href="/">
+      <img class="img-circle" height="34" alt="Elaborate Last.fm Charts" src="{{ url_for('elaboratecharts.static', filename='gfx/brand.png') }}" />
+      Elaborate Last.fm Charts
+    </a>
+    <button type="button" class="navbar-toggle">
+      <span class="sr-only">Toggle navigation</span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </button>
+  </nav>
+  <form role="form" id="form">
+    <div class="form-group">
+      <label class="control-label" for="username">Username</label>
+      <input id="username" type="text" class="form-control" name="username" placeholder="Enter your username" />
+      <i class="fa fa-remove form-control-feedback hidden"></i>
+    </div>
+    <div class="form-group">
+      <label class="control-label" for="chart-type">Chart type</label>
+      <select id="chart-type" class="form-control" name="chart-type">
+      {%- for value, text in chart_types %}
+        <option value="{{ value }}">{{ text }}</option>
+      {%- endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="control-label" for="number-of-positions">Number of positions</label>
+      <select id="number-of-positions" class="form-control" name="number-of-positions">
+      {%- for value, text in numbers_of_positions %}
+          <option value="{{ value }}">{{ text }}</option>
+      {%- endfor %}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="control-label" for="timeframe">Timeframe</label>
+      <select id="timeframe" class="form-control" name="timeframe">
+      {%- for value, text in timeframes %}
+        <option value="{{ value }}">{{ text }}</option>
+      {%- endfor %}
+      </select>
+    </div>
+    <button class="btn btn-primary btn-block ladda-button" type="submit" id="submit" data-style="slide-left">Submit</button>
+    <div id="alert" class="alert alert-inverse hidden" role="alert">
+      <strong id="alert-reason">Server error</strong> <span id="alert-message"></span>
+    </div>
+  </form>
+  <div class="row footer">
+    <div class="share-button-visible">
+      <div class="fb-share-button" data-href="http://perlence.mooo.com/" data-width="40" data-layout="button_count"></div>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-via="Sacret19">Tweet</a>
+    </div>
+    <div class="clearfix"></div>
+    <div class="info">
+      Brought to you by <a href="https://twitter.com/perlencellent" target="_blank">@Perlencellent</a> and <a href="https://twitter.com/sacret19" target="_blank">@Sacret19</a>.
+      Fork us on <a href="https://github.com/Perlence/elaborate-lastfm-charts" target="_blank">GitHub</a>.
+    </div>
+  </div>
+  <div class="row github text-center">
+    <div class="share-button">
+      <div class="fb-share-button" data-href="http://perlence.mooo.com/" data-width="40" data-layout="button"></div>
+      <div>
+        <a href="https://twitter.com/share" class="twitter-share-button" data-via="Sacret19" data-count="none">Tweet</a>
+        <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+      </div>
+    </div>
+    <div class="clearfix"></div>
+    <div>
+      <a href="https://github.com/Perlence/elaborate-lastfm-charts" target="_blank"><span class="fa fa-github"></span></a>
+    </div>
+  </div>
+</div>
+
+<div id="chart">&nbsp;</div>
+{% endblock %}
+
+{% block tail_js %}
+  {{ super() }}
+  <script type="text/javascript">$GET_PARAMS = {{ request.args|tojson }};</script>
+{% endblock %}

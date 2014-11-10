@@ -1,0 +1,36 @@
+{
+  "name": "elaborate-lastfm-charts",
+  "version": "0.1.0",
+  "homepage": "https://github.com/Perlence/elaborate-lastfm-charts",
+  "authors": [
+    "Sviatoslav Abakumov <dust.harvesting@gmail.com>",
+    "Anastasiya Kozayeva <sacret.nk@mail.ru>"
+  ],
+  "description": "Amazing Last.fm charts.",
+  "keywords": [
+    "last.fm",
+    "python",
+    "flask",
+    "redis",
+    "gevent"
+  ],
+  "license": "BSD",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bluebird": "~2.3.6",
+    "bootstrap-sass-official": "~3.3.0",
+    "highstock-release": "~2.0.4",
+    "history.js": "~1.8.0",
+    "ladda-bootstrap": "~0.1.0",
+    "lodash": "~2.4.1",
+    "moment": "~2.8.3",
+    "font-awesome": "~4.2.0",
+    "jquery.finger": "~0.1.2"
+  }
+}

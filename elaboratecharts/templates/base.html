@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    {%- block head_meta %}
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    {%- endblock %}
+
+    <title>{% block title -%}{%- endblock %}</title>
+
+    {%- block head_css %}
+    {%- assets 'css_all' %}
+    <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}">
+    {%- endassets %}
+    {%- endblock %}
+
+    {%- block head_js %}
+    {%- endblock %}
+
+    {%- block head %}
+    {%- endblock %}
+  </head>
+
+  <body>
+    {%- block body %}
+    {%- endblock %}
+
+    {%- block tail_js %}
+    {%- assets 'js_all' %}
+    <script type="text/javascript" src="{{ ASSET_URL }}"></script>
+    {%- endassets %}
+    <script type="text/javascript">$SCRIPT_ROOT = {{ request.base_url.rstrip('/')|tojson|safe }};</script>
+    {%- endblock %}
+
+    {%- block tail %}
+    {%- endblock %}
+  </body>
+</html>
