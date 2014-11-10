@@ -20,10 +20,9 @@ class ElaborateCharts(object):
         self.init_assets(app, url_prefix=url_prefix)
 
     def init_assets(self, app, url_prefix=None):
-        blueprint = app.blueprints['elaboratecharts']
         env = Environment(app)
-        env.url = (url_prefix or '') + blueprint.static_url_path
-        env.directory = blueprint.static_folder
+        env.url = (url_prefix or '') + elaboratecharts.static_url_path
+        env.directory = elaboratecharts.static_folder
         env.load_path = map(rel, [
             'scss',
             'coffee',
