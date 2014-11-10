@@ -75,7 +75,7 @@ def index():
             ('overall', 'Overall'),
         ],
     }
-    return render_template('index.html', **context)
+    return render_template('elaboratecharts/index.html', **context)
 
 
 @app.route('/weekly-chart')
