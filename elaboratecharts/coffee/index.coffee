@@ -316,8 +316,5 @@ $ ->
   $('#settings-block .navbar-toggle').click ->
     navbarCollapsedState('toggle')
 
-  $('#settings-block').on 'flick', ->
-    navbarCollapsedState('toggle')
-
   unless _.all(_.values($GET_PARAMS), _.isNull)
     $('#form').submit()
