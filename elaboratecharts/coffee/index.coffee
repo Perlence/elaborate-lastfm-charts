@@ -318,3 +318,13 @@ $ ->
 
   unless _.all(_.values($GET_PARAMS), _.isNull)
     $('#form').submit()
+
+  $('.btn-xxs').popover
+    html: true
+    content: ->
+      '<input type="text" class="form-control input-sm"
+         value="' + History.getLocationHref() + '" onclick="this.select();" />'
+    placement: 'top'
+
+  $('.btn-xxs').on 'shown.bs.popover', ->
+    $('.popover input').focus().select()

@@ -63,8 +63,12 @@ form {
   transition: opacity 0.3s;
 }
 
-.btn {
-  margin-bottom: 20px;
+.alert {
+  margin-top: 20px;
+}
+
+.btn-xxs {
+  @include button-size(0, 4px, $font-size-small, $line-height-small, $border-radius-small);
 }
 
 .alert-inverse {
@@ -104,7 +108,7 @@ form {
   margin-left: 15px;
   transition: opacity 0.3s;
   .fb-share-button {
-    margin-right: 10px;
+    margin: 0 10px;
   }
 }
 
@@ -136,7 +140,7 @@ form {
   width: 72px;
 }
 
-.fb-share-button {
+.fb-share-button, .btn-xxs {
   margin-bottom: 10px;
 }
 
@@ -147,4 +151,8 @@ form {
 
 .form-control-feedback {
   line-height: 32px !important;
+}
+
+.popover {
+  width: 276px;
 }
