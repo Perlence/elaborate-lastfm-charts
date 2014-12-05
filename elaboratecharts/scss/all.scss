@@ -154,5 +154,10 @@ form {
 }
 
 .popover {
+  color: $text-color;
   width: 276px;
+}
+
+.popover .close {
+  margin-top: 3px;
 }

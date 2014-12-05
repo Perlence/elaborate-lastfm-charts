@@ -326,20 +326,23 @@ $ ->
          value="' + History.getLocationHref() + '" onclick="this.select();" />'
     placement: 'top'
     title: 'Copy and share with friends'
-    template: '<div class="popover" role="tooltip">
-                <div class="arrow"></div>
-                <button type="button" class="close"
-                  onclick=$(".btn-xxs").popover("hide");>
-                  <span aria-hidden="true">&times;&nbsp;</span>
-                  <span class="sr-only">Close</span>
-                </button>
-                <h3 class="popover-title"></h3>
-                <div class="popover-content"></div>
-              </div>'
+    template: """
+      <div class="popover" role="tooltip">
+        <div class="arrow"></div>
+        <button type="button" class="close"
+            onclick="$('.btn-xxs').popover('hide');">
+          <span aria-hidden="true">&times;&nbsp;</span>
+          <span class="sr-only">Close</span>
+        </button>
+        <h3 class="popover-title"></h3>
+        <div class="popover-content"></div>
+      </div>
+    """
 
   $('.btn-xxs').on 'shown.bs.popover', ->
     $('.popover input').focus().select()
 
   $(window).click (e) ->
-    if !$(e.target).parents('.popover').length && !$(e.target).is('.btn-xxs')
+    unless $(e.target).parents('.popover').length or
+           $(e.target).is('.btn-xxs')
       $('.btn-xxs').popover('hide')
