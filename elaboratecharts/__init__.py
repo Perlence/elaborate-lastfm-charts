@@ -41,7 +41,6 @@ class ElaborateCharts(object):
                 'lodash/dist/lodash.js',
                 ('history.js/scripts/bundled-uncompressed/html4+html5/'
                  'jquery.history.js'),
-                'jquery.finger/dist/jquery.finger.js',
                 output='js_requirements.js'),
             Bundle(
                 'index.coffee',
