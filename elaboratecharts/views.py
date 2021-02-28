@@ -25,7 +25,7 @@ class ThrottlingPool(Pool):
     def __init__(self, size=None, interval=None, greenlet_class=None):
         self.interval = interval
         self._lock = RLock()
-        super(ThrottlingPool, self).__init__(size, greenlet_class)
+        super().__init__(size, greenlet_class)
 
     def wait_available(self):
         wait(self._lock, self._semaphore)
@@ -33,7 +33,7 @@ class ThrottlingPool(Pool):
     def add(self, greenlet):
         self._lock.acquire()
         try:
-            super(ThrottlingPool, self).add(greenlet)
+            super().add(greenlet)
         except:
             self._lock.release()
             raise
@@ -44,7 +44,8 @@ class ThrottlingPool(Pool):
 pool = ThrottlingPool(POOL_SIZE, LASTFM_INTERVAL)
 
 redis = Redis(host=config.REDIS_HOST, port=config.REDIS_PORT,
-              db=config.REDIS_DB, password=config.REDIS_PASSWORD)
+              db=config.REDIS_DB, password=config.REDIS_PASSWORD,
+              decode_responses=True)
 app = elaboratecharts = Blueprint('elaboratecharts', __name__,
                                   template_folder='templates',
                                   static_folder='static')
@@ -82,11 +83,11 @@ def index():
 def weekly_chart():
     username = request.args.get('username').lower()
     chart_type = request.args.get('chartType').lower()
-    from_date = request.args.get('fromDate')
-    to_date = request.args.get('toDate')
+    from_date = int(request.args.get('fromDate'))
+    to_date = int(request.args.get('toDate'))
 
-    if chart_type not in ('artist', 'album', 'track'):
-        response = jsonify(error='Unknown chart type: %s' % chart_type)
+    if chart_type not in {'artist', 'album', 'track'}:
+        response = jsonify(error=f'Unknown chart type: {chart_type}')
         response.status_code(400)
         return response
 
@@ -99,18 +100,16 @@ def weekly_chart():
     for __ in range(RETRIES):  # try several times
         timeout = Timeout(TIMEOUT)
         timeout.start()
-        result = {'toDate': to_date.timestamp}
+        result = {'toDate': to_date.int_timestamp}
         try:
             chart = get_weekly_chart(api, dbuser, chart_type,
                                      from_date, to_date)
         except LastfmError as exc:
-            result['error'] = 'Failed to get chart for %s: %s' % (
-                to_date.isoformat(), exc.message)
+            result['error'] = f'Failed to get chart for {to_date.isoformat()}: {exc.message}'
         except Timeout as t:
             if t is not timeout:
                 raise
-            result['error'] = 'Failed to get chart for %s: %s' % (
-                to_date.isoformat(), 'timed out')
+            result['error'] = f'Failed to get chart for {to_date.isoformat()}: timed out'
         else:
             result['chart'] = chart
             result.pop('error', None)
@@ -131,24 +130,23 @@ def get_registered():
     registered = dbuser.get_registered()
     if registered is None:
         try:
-            registered = arrow.get(
-                pool.spawn(api.user.get_info, username)
-                    .get()['registered']['unixtime'])
+            user_info = pool.spawn(api.user.get_info, username).get()
+            registered = arrow.get(int(user_info['registered']['unixtime']))
         except LastfmError as err:
             response = jsonify(error=err.message)
             response.status_code = 502
             return response
         spawn(dbuser.set_registered, registered)
 
-    return jsonify(registered=registered.timestamp)
+    return jsonify(registered=registered.int_timestamp)
 
 
 def get_weekly_chart(api, dbuser, chart_type, from_date, to_date):
     week_start = arrow.get().floor('week')
-    is_current_week = week_start.replace(hours=-12) == from_date
+    is_current_week = week_start.shift(hours=-12) == from_date
 
     get_weekly_smth_chart = getattr(api.user,
-                                    'get_weekly_%s_chart' % chart_type)
+                                    f'get_weekly_{chart_type}_chart')
 
     if not is_current_week:
         cached_chart = dbuser.get_weekly_chart(chart_type,
@@ -158,8 +156,8 @@ def get_weekly_chart(api, dbuser, chart_type, from_date, to_date):
 
         response = pool.spawn(get_weekly_smth_chart,
                               dbuser.username,
-                              from_=from_date.timestamp,
-                              to=to_date.timestamp).get()
+                              from_=int(from_date.int_timestamp),
+                              to=int(to_date.int_timestamp)).get()
     else:
         response = pool.spawn(get_weekly_smth_chart,
                               dbuser.username).get()
@@ -187,4 +185,4 @@ def chart_key(chart_type, item):
     if chart_type == 'artist':
         return item['name']
     elif chart_type in ('album', 'track'):
-        return item['artist']['#text'] + u' – ' + item['name']
+        return f"{item['artist']['#text']} – {item['name']}"

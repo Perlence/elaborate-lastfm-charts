@@ -25,7 +25,7 @@ class User(object):
 
     @property
     def prefix(self):
-        return '{collection}:{username}'.format(**vars(self))
+        return f'{self.collection}:{self.username}'
 
     def with_prefix(self, operation, key, *args, **kwargs):
         method = getattr(self.redis, operation)
@@ -34,35 +34,29 @@ class User(object):
     def get_registered(self):
         registered = self.with_prefix('hget', 'info', 'registered')
         if registered is not None:
-            return arrow.get(registered)
+            return arrow.get(int(registered))
 
     def set_registered(self, registered):
-        self.with_prefix('hset', 'info', 'registered', registered.timestamp)
+        self.with_prefix('hset', 'info', 'registered', registered.int_timestamp)
 
     def get_weekly_chart(self, chart_type, from_date, to_date):
         charts = self.with_prefix(
             'hgetall',
-            'weekly_{chart_type}_chart:{from_date}_{to_date}'.format(
-                chart_type=chart_type,
-                from_date=from_date.timestamp,
-                to_date=to_date.timestamp))
+            f'weekly_{chart_type}_chart:{from_date.int_timestamp}_{to_date.int_timestamp}')
         if charts == {}:
             return None
         elif charts == {'__EMPTY__': '-1'}:
             return {}
         else:
-            return dict(zip(charts.iterkeys(), map(int, charts.itervalues())))
+            return dict(zip(charts.keys(), map(int, charts.values())))
 
     def set_weekly_chart(self, chart_type, from_date, to_date, charts):
         if not charts:
             charts = {'__EMPTY__': '-1'}
-        for artist, count in charts.iteritems():
+        for artist, count in charts.items():
             self.with_prefix(
                 'hset',
-                'weekly_{chart_type}_chart:{from_date}_{to_date}'.format(
-                    chart_type=chart_type,
-                    from_date=from_date.timestamp,
-                    to_date=to_date.timestamp),
+                f'weekly_{chart_type}_chart:{from_date.int_timestamp}_{to_date.int_timestamp}',
                 artist,
                 count)
 

@@ -19,7 +19,7 @@ def _setup():
         warn('user config is missing')
 
     # Load options from environment and parse them as Python literals
-    for key, value in environ.iteritems():
+    for key, value in environ.items():
         mo = environ_var.match(key)
         if mo is not None:
             option = mo.group(1).upper()

@@ -1,13 +1,13 @@
 from os import path
 from shutil import copytree, rmtree
 
-from flask.ext.assets import Environment, Bundle
+from flask_assets import Environment, Bundle
 
 from .views import elaboratecharts
 
 
 def rel(p):
-    return path.join(path.dirname(__file__), p)
+    return path.join(path.abspath(path.dirname(__file__)), p)
 
 
 class ElaborateCharts(object):
@@ -23,11 +23,11 @@ class ElaborateCharts(object):
         env = Environment(app)
         env.url = (url_prefix or '') + elaboratecharts.static_url_path
         env.directory = elaboratecharts.static_folder
-        env.load_path = map(rel, [
+        env.load_path = list(map(rel, [
             'scss',
             'coffee',
             'bower_components',
-        ])
+        ]))
 
         js_bundle = Bundle(
             Bundle(
@@ -51,11 +51,11 @@ class ElaborateCharts(object):
             'all.scss',
             filters=['scss'],
             output='css_all.css')
-        env.config['sass_load_paths'] = map(rel, [
+        env.config['sass_load_paths'] = list(map(rel, [
             'bower_components/bootstrap-sass-official/assets/stylesheets/',
             'bower_components/ladda-bootstrap/css/',
             'bower_components/font-awesome/scss/',
-        ])
+        ]))
 
         # Copy fonts to static folder
         static_fonts = path.join(env.directory, 'fonts')

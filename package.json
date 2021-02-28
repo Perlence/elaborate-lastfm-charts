@@ -1,0 +1,27 @@
+{
+  "name": "elaborate-lastfm-charts",
+  "version": "0.1.3",
+  "description": "Amazing Last.fm charts.",
+  "main": "index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "coffeescript": "^2.5.1",
+    "sass": "^1.32.8"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Perlence/elaborate-lastfm-charts.git"
+  },
+  "authors": [
+    "Sviatoslav Abakumov <dust.harvesting@gmail.com>",
+    "Anastasiya Kozayeva <sacret.nk@mail.ru>"
+  ],
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/Perlence/elaborate-lastfm-charts/issues"
+  },
+  "homepage": "https://github.com/Perlence/elaborate-lastfm-charts#readme"
+}

@@ -14,7 +14,7 @@
     "redis",
     "gevent"
   ],
-  "license": "BSD",
+  "license": "BSD-3-Clause",
   "private": true,
   "ignore": [
     "**/.*",
