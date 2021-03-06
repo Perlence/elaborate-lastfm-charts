@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {},
   "devDependencies": {
+    "bower": "^1.8.12",
     "coffeescript": "^2.5.1",
     "sass": "^1.32.8"
   },

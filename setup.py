@@ -12,12 +12,6 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    entry_points={
-        'console_scripts': [
-            'startapp = elaboratecharts.app:start',
-            'debugapp = elaboratecharts.app:debug',
-        ],
-    },
     install_requires=[
         'arrow',
         'Flask',

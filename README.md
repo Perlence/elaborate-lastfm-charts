@@ -6,8 +6,8 @@ Amazing Last.fm charts.
 Installation
 ------------
 
-To install the application you need Python 2.7, Ruby, and a stable node.js.
-Also you need Redis to cache data from Last.fm.
+To install the application you need Python 3.5 or later and a stable Node.js.
+Also you need Redis to cache the data from Last.fm.
 
 -   Clone the repository:
 
@@ -26,20 +26,14 @@ Also you need Redis to cache data from Last.fm.
 -   Install requirements:
 
     ```bash
-    pip install -r requirements.txt -r dev-requirements.txt
+    pip install -r requirements.txt
     ```
 
--   Install `elaborate-lastfm-charts` for development:
+-   Install Bower, CoffeeScript, and Sass:
 
     ```bash
-    python setup.py develop
-    ```
-
--   Install Bower, CoffeeScript, Sass, and Autoprefixer:
-
-    ```bash
-    npm install -g bower coffee-script autoprefixer
-    gem install sass
+    npm install
+    export PATH="$PWD/node_modules/.bin:$PATH"
     ```
 
 -   Install front-end dependencies using Bower:
@@ -54,9 +48,10 @@ Also you need Redis to cache data from Last.fm.
     cp elaboratecharts/default.json elaboratecharts/config.json
     ```
 
--   Put actual values into the config.
+-   Put the actual values into the config.
 
-`elaborate-lastfm-charts` creates following entry points:
+- Run the server:
 
--   `startapp` &ndash; start the web server.
--   `debugapp` &ndash; start the server and enable debugging.
+    ```bash
+    gunicorn elaboratecharts.app:app
+    ```

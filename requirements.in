@@ -2,6 +2,6 @@ arrow
 Flask-Assets
 Flask
 gevent
+gunicorn[gevent]
 git+git://github.com/ssssam/lastfmclient@d2851829c3199f01d52c176fe884f9ce2c2433fe#egg=lastfmclient
 redis
-Werkzeug

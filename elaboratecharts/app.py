@@ -1,6 +1,3 @@
-from gevent import monkey
-monkey.patch_all(select=False, thread=False)
-
 from flask import Flask
 
 from . import config
